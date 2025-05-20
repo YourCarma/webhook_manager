@@ -1,1 +1,7 @@
+.idea
+.run
+.vscode
+.env
+.DS_Store
+/config/production.toml
 /target
