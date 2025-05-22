@@ -6,9 +6,9 @@ use serde::{Deserialize};
 pub struct RedisConfig {
     host: String,
     port: u64,
-    // #[getset(skip)]
-    // #[getset(get_copy = "pub")]
-    // expired: u64,
+    #[getset(skip)]
+    #[getset(get_copy = "pub")]
+    expired: u64,
 }
 
 // fn test(){
