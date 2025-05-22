@@ -1,5 +1,5 @@
 use getset::{CopyGetters, Getters};
-use serde::{Deserialize};
+use serde::Deserialize;
 
 #[derive(Deserialize, CopyGetters, Getters, Clone)]
 #[getset(get = "pub")]

@@ -1,14 +1,13 @@
-use getset::{Getters, Setters};
-use serde::{de::Error, Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use getset::{Getters, Setters};
+use serde::{Deserialize, Serialize, de::Error};
+use uuid::Uuid;
 
 use redis::{RedisError, RedisResult, RedisWrite, Value};
 
-
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TaskStatus{
+pub enum TaskStatus {
     Pending,
     Awaiting,
     Processing,
@@ -17,7 +16,7 @@ pub enum TaskStatus{
 }
 
 #[derive(Serialize, Deserialize, Getters, Setters)]
-pub struct Task{
+pub struct Task {
     task_id: Uuid,
     user_id: Uuid,
     #[getset(set = "pub")]
@@ -56,10 +55,8 @@ impl redis::FromRedisValue for Task {
     }
 }
 
-#[derive(Serialize, Deserialize,)]
-pub struct  TaskProgress {
+#[derive(Serialize, Deserialize)]
+pub struct TaskProgress {
     status: TaskStatus,
     progress: f32,
 }
-
-

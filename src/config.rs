@@ -27,7 +27,7 @@ impl ServiceConfig {
         let file_config = File::with_name(&run_mode_file_path)
             .format(FileFormat::Toml)
             .required(false);
-        
+
         let env_config = Environment::with_prefix(CONFIG_PREFIX)
             .prefix_separator("__")
             .separator("__")

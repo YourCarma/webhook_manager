@@ -1,7 +1,6 @@
 pub mod config;
 mod storage;
 
-
 #[async_trait::async_trait]
 pub trait ServiceConnect {
     type Config;

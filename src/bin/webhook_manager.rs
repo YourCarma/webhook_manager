@@ -1,6 +1,5 @@
 use webhook_manager::config::ServiceConfig;
 
-
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let config = ServiceConfig::new()?;
@@ -8,4 +7,3 @@ async fn main() -> Result<(), anyhow::Error> {
     println!("{}", redis_config.host());
     Ok(())
 }
-
