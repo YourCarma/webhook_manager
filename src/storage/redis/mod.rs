@@ -25,7 +25,7 @@ impl ServiceConnect for RedisStorage {
     type Client = RedisStorage;
 
     async fn connect(config: &Self::Config) -> Result<Self::Client, Self::Error> {
-        let address = format!("redis://{}:{}", config.host().as_str(), config.port());
+        let address = config.address();
         let client = Client::open(address.clone())?;
         // TODO: Need to add log message of successful connection
         tracing::info!(address = address);
@@ -84,10 +84,9 @@ impl TaskStorage for RedisStorage {
         for key in client_keys.iter() {
             let value: Task = self.get_task(key).await?;
             let ttl = self.get_ttl(key).await?;
-            let result = FormattedTask {
-                task: value,
-                expire: ttl,
-            };
+            let mut result = FormattedTask::default();
+            result.set_task(value);
+            result.set_expire(ttl);
             tasks.push(result);
         }
         Ok(tasks)
@@ -130,13 +129,81 @@ impl RedisStorage {
 
 #[cfg(test)]
 mod test_redis {
-    use super::*;
 
-    #[test]
-    fn test_add() {
-        // let input_1 = 2;
-        // let input_2 = 8;
-        // let result = add(input_1, input_2);
-        // assert_eq!(result, 10, "The addition result is incorrect.");
+    use redis::AsyncCommands;
+
+    use crate::config::ServiceConfig;
+    use crate::storage::error::SubmitResult;
+    use crate::storage::models::{FormattedTask, Task, TaskProgress, TaskStatus};
+    use crate::storage::redis::RedisStorage;
+    use crate::storage::TaskStorage;
+    use crate::ServiceConnect;
+
+
+    #[tokio::test]
+    async fn test_connection() -> Result<(), anyhow::Error>  {
+        let s_config = ServiceConfig::new()?;        
+        let redis_config = s_config.storage();
+        let redis = RedisStorage::connect(redis_config).await?;
+        let cxt = redis.client.write().await;
+        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let connected: String = conn.ping().await?;
+        assert_eq!(connected, "PONG");
+        Ok(())
     }
+
+    #[tokio::test]
+    async fn test_create_task() -> Result<(), anyhow::Error>  {
+        let s_config = ServiceConfig::new()?;        
+        let redis_config = s_config.storage();
+        let redis = RedisStorage::connect(redis_config).await?;
+        let key = "test_user1:test_service1:test_task1";
+        let task = Task::default();
+        let created= redis.create_task(key, task).await?;
+        assert_eq!(created, ());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_task() -> Result<(), anyhow::Error>{
+        let s_config = ServiceConfig::new()?;        
+        let redis_config = s_config.storage();
+        let redis = RedisStorage::connect(redis_config).await?;
+        let key = "test_user1:test_service1:test_task1";
+        let task = Task::default();
+        let result = redis.get_task(key).await?;
+        assert_eq!(result, task);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_update_progress() -> Result<(), anyhow::Error>{
+        let s_config = ServiceConfig::new()?;        
+        let redis_config = s_config.storage();
+        let redis = RedisStorage::connect(redis_config).await?;
+        let key = "test_user1:test_service1:test_task1";
+        let mut progress = TaskProgress::default();
+        progress.set_progress(100.0)
+                .set_status(TaskStatus::Ready);
+        let _ = redis.update_progress(key, progress.clone()).await?;
+        let result = redis.get_task(key).await?;
+        assert_eq!(progress, *result.progress());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_add_response() -> Result<(), anyhow::Error>{
+        let s_config = ServiceConfig::new()?;        
+        let redis_config = s_config.storage();
+        let redis = RedisStorage::connect(redis_config).await?;
+        let key = "test_user1:test_service1:test_task1";
+        let test_response_data = "{\n    \"file_url\" : \"www.example.com\"\n}".to_string();
+        let _ = redis.add_response_data(key, test_response_data.clone()).await?;
+        let result = redis.get_task(key).await?;
+        assert_eq!(test_response_data, *result.response_data());
+        Ok(())
+    }
+
+
+
 }

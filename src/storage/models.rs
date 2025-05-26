@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use getset::{Getters, Setters};
 use serde::{Deserialize, Serialize, de::Error};
@@ -5,9 +7,10 @@ use uuid::Uuid;
 
 use redis::{RedisError, RedisResult, RedisWrite, Value};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TaskStatus {
+    #[default]
     Pending,
     Awaiting,
     Processing,
@@ -15,7 +18,8 @@ pub enum TaskStatus {
     Error,
 }
 
-#[derive(Serialize, Deserialize, Getters, Setters)]
+#[derive(Serialize, Deserialize, Getters, Setters, PartialEq, Debug, Clone)]
+#[getset(get = "pub", set = "pub")]
 pub struct Task {
     task_id: Uuid,
     user_id: Uuid,
@@ -27,11 +31,42 @@ pub struct Task {
     response_data: String,
 }
 
-#[derive(Serialize, Deserialize, Getters, Setters)]
+#[derive(Serialize, Deserialize, Getters, Setters, Debug, Clone)]
+#[getset(get = "pub", set = "pub")]
 pub struct FormattedTask {
     #[serde(flatten)]
-    pub task: Task,
-    pub expire: u64,
+    task: Task,
+    expire: u64,
+}
+
+#[derive(Serialize, Deserialize, Getters, Setters, Default, PartialEq, Debug, Clone)]
+#[getset(get = "pub", set = "pub")]
+pub struct TaskProgress {
+    status: TaskStatus,
+    progress: f32,
+}
+
+impl Default for Task {
+    fn default() -> Self {
+        let datetime = DateTime::parse_from_rfc3339("2025-05-26T14:18:48.717056300Z").unwrap().with_timezone(&Utc);
+        Self {
+            task_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),  
+            user_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),     
+            progress: TaskProgress::default(),
+            created_at: datetime,   
+            updated_at: datetime,
+            response_data: String::new(),
+        }
+    }
+}
+
+impl  Default for FormattedTask {
+    fn default() -> Self {
+        Self {
+            expire: 1800,
+            task: Task::default()
+        }
+    }
 }
 
 impl redis::ToRedisArgs for Task {
@@ -76,8 +111,4 @@ impl redis::ToRedisArgs for TaskProgress {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct TaskProgress {
-    status: TaskStatus,
-    progress: f32,
-}
+

@@ -4,8 +4,7 @@ use serde::Deserialize;
 #[derive(Deserialize, CopyGetters, Getters, Clone)]
 #[getset(get = "pub")]
 pub struct RedisConfig {
-    host: String,
-    port: u64,
+    address: String,
     #[getset(skip)]
     #[getset(get_copy = "pub")]
     expired: u64,
