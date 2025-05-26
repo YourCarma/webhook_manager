@@ -1,4 +1,3 @@
-use core::error;
 use thiserror::Error;
 
 pub type StorageResult<T> = Result<T, StorageError>;
@@ -12,6 +11,8 @@ pub enum StorageError {
     ClientNotFound(String),
     #[error("Task not found: {0}")]
     TaskNotFound(String),
+    #[error("Another Error: {0}")]
+    AnotherError(String),
     #[error("Key {0} not found")]
     KeyNotFound(String),
 }

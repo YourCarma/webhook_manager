@@ -27,6 +27,13 @@ pub struct Task {
     response_data: String,
 }
 
+#[derive(Serialize, Deserialize, Getters, Setters)]
+pub struct FormattedTask {
+    #[serde(flatten)]
+    pub task: Task,
+    pub expire: u64,
+}
+
 impl redis::ToRedisArgs for Task {
     fn write_redis_args<W>(&self, out: &mut W)
     where
@@ -50,6 +57,20 @@ impl redis::FromRedisValue for Task {
             _ => {
                 let err = serde_json::Error::custom("failed to extract redis value type");
                 Err(RedisError::from(err))
+            }
+        }
+    }
+}
+
+impl redis::ToRedisArgs for TaskProgress {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + RedisWrite,
+    {
+        match serde_json::to_string(self) {
+            Ok(json_str) => out.write_arg_fmt(json_str),
+            Err(err) => {
+                tracing::error!(err=?err, "REDIS: failed to serialize TaskProgress Form");
             }
         }
     }
