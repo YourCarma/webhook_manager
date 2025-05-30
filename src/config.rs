@@ -1,4 +1,6 @@
 use crate::storage::redis::config::RedisConfig;
+use crate::server::config::ServerConfig;
+use crate::logger::LoggerConfig;
 
 use config::{Config, ConfigError, Environment, File, FileFormat};
 use derive_builder::Builder;
@@ -14,6 +16,8 @@ const DEV_FILE_CONFIG_PATH: &str = "./config/development.toml";
 #[getset(get = "pub")]
 pub struct ServiceConfig {
     storage: RedisConfig,
+    server: ServerConfig,
+    logger: LoggerConfig,
 }
 
 impl ServiceConfig {

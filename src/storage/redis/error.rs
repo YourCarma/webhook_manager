@@ -7,7 +7,7 @@ impl From<RedisError> for StorageError {
     fn from(err: RedisError) -> Self {
         match err.kind() {
             ErrorKind::ResponseError | ErrorKind::ParseError | ErrorKind::AuthenticationFailed => {
-                StorageError::ServiceUnavailable
+                StorageError::ServiceUnavailable("Redis".to_owned())
             }
 
             ErrorKind::TypeError | ErrorKind::ExecAbortError | ErrorKind::BusyLoadingError => {
@@ -32,9 +32,9 @@ impl From<RedisError> for StorageError {
             // ErrorKind::NotBusy => {}
             // ErrorKind::ClusterConnectionNotFound => {}
             // ErrorKind::NoSub => {}
-            // ErrorKind::Serialize => {}
             // ErrorKind::RESP3NotSupported => {}
-            _ => StorageError::ClientNotFound(err.to_string()),
+            ErrorKind::Serialize => StorageError::KeyNotFound("Key not found!".to_owned()),
+            _ => StorageError::AnotherError(err.to_string()),
         }
     }
 }

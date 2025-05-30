@@ -4,10 +4,12 @@ use chrono::{DateTime, Utc};
 use getset::{Getters, Setters};
 use serde::{Deserialize, Serialize, de::Error};
 use uuid::Uuid;
+use utoipa::ToSchema;
+
 
 use redis::{RedisError, RedisResult, RedisWrite, Value};
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone, ToSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TaskStatus {
     #[default]
@@ -18,10 +20,12 @@ pub enum TaskStatus {
     Error,
 }
 
-#[derive(Serialize, Deserialize, Getters, Setters, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Getters, Setters, PartialEq, Debug, Clone, ToSchema)]
 #[getset(get = "pub", set = "pub")]
 pub struct Task {
+    #[schema(value_type = String, format = "uuid")]
     task_id: Uuid,
+    #[schema(value_type = String, format = "uuid")]
     user_id: Uuid,
     #[getset(set = "pub")]
     progress: TaskProgress,
@@ -31,15 +35,15 @@ pub struct Task {
     response_data: String,
 }
 
-#[derive(Serialize, Deserialize, Getters, Setters, Debug, Clone)]
+#[derive(Serialize, Deserialize, Getters, Setters, Debug, Clone, ToSchema)]
 #[getset(get = "pub", set = "pub")]
 pub struct FormattedTask {
     #[serde(flatten)]
     task: Task,
-    expire: u64,
+    expire: i64,
 }
 
-#[derive(Serialize, Deserialize, Getters, Setters, Default, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Getters, Setters, Default, PartialEq, Debug, Clone, ToSchema)]
 #[getset(get = "pub", set = "pub")]
 pub struct TaskProgress {
     status: TaskStatus,
@@ -48,23 +52,25 @@ pub struct TaskProgress {
 
 impl Default for Task {
     fn default() -> Self {
-        let datetime = DateTime::parse_from_rfc3339("2025-05-26T14:18:48.717056300Z").unwrap().with_timezone(&Utc);
+        let datetime = DateTime::parse_from_rfc3339("2025-05-26T14:18:48.717056300Z")
+            .unwrap()
+            .with_timezone(&Utc);
         Self {
-            task_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),  
-            user_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),     
+            task_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),
+            user_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),
             progress: TaskProgress::default(),
-            created_at: datetime,   
+            created_at: datetime,
             updated_at: datetime,
             response_data: String::new(),
         }
     }
 }
 
-impl  Default for FormattedTask {
+impl Default for FormattedTask {
     fn default() -> Self {
         Self {
             expire: 1800,
-            task: Task::default()
+            task: Task::default(),
         }
     }
 }
@@ -110,5 +116,3 @@ impl redis::ToRedisArgs for TaskProgress {
         }
     }
 }
-
-

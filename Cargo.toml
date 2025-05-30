@@ -10,17 +10,25 @@ config = "0.15.8"
 derive_builder = "0.20.2"
 dotenv = "0.15.0"
 metrics-exporter-prometheus = "0.17.0"
+axum-prometheus = "0.8.0"
+axum-tracing-opentelemetry = "0.28.0"
 thiserror = "2.0.12"
 serde_json = "1.0.140"
 getset = "0.1.5"
 tracing = "0.1"
+serde_derive = "1.0.218"
+regex = "1.11.1"
+tracing-loki = "0.2.6"
+tracing-subscriber = "0.3.19"
+console-subscriber = "0.4.1"
+
 
 [dependencies.chrono]
 version = "0.4.41"
 features = ["serde"]
 
 [dependencies.tokio]
-version = "1.43.0"
+version = "1.45.1"
 features = ["full"]
 
 [dependencies.tower-http]
@@ -31,8 +39,12 @@ features = ["trace", "cors"]
 version = "5.3.1"
 features = ["axum_extras", "chrono"]
 
+[dependencies.utoipa-swagger-ui]
+version = "9"
+features = ["axum"] 
+
 [dependencies.uuid]
-version = "1.16.0"
+version = "1.17.0"
 features = [
     "v4", 
     "serde"
@@ -46,7 +58,13 @@ features = ["aio", "tokio-comp", "connection-manager", "json"]
 version = "1.0"
 features = ["derive"]
 
+[dependencies.axum]
+version = "0.8.4"
+features = ["ws"]
 
+[dependencies.reqwest]
+version = "0.12"
+features = ["json"] 
 
 
 

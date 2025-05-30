@@ -1,5 +1,8 @@
 pub mod config;
-mod storage;
+pub mod server;
+pub mod storage;
+pub mod logger;
+mod errors;
 
 #[async_trait::async_trait]
 pub trait ServiceConnect {

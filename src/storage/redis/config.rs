@@ -9,11 +9,3 @@ pub struct RedisConfig {
     #[getset(get_copy = "pub")]
     expired: u64,
 }
-
-// fn test(){
-//     let redis = RedisConfig{
-//     address: "122".to_string(),
-//     expired: 3600
-//     };
-//     redis.address()
-// }
