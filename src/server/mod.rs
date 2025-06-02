@@ -1,12 +1,12 @@
 pub mod config;
 pub mod error;
 pub mod router;
-pub mod swagger;
 
 use std::sync::Arc;
 
+pub mod swagger; 
 use axum::Router;
-use axum::routing::{get, patch, post};
+use axum::routing::{get, patch, post, any};
 use swagger::ApiDoc;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -38,11 +38,21 @@ where
     let app_arc = Arc::new(app);
     Router::new()
         .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .route("/storage/task", post(router::storage::create_task)
-                                                    .get(router::storage::get_task)
-                                                    .delete(router::storage::delete_task))
+        .route(
+            "/storage/task",
+            post(router::storage::create_task)
+                .get(router::storage::get_task)
+                .delete(router::storage::delete_task),
+        )
         .route("/storage/tasks", get(router::storage::get_tasks))
-        .route("/storage/update_progress", patch(router::storage::update_progress))
-        .route("/storage/update_response_data", patch(router::storage::add_response_data))     
+        .route(
+            "/storage/update_progress",
+            patch(router::storage::update_progress),
+        )
+        .route(
+            "/storage/update_response_data",
+            patch(router::storage::add_response_data),
+        )
+        .route("/ws", any(router::storage::websocket_handler))
         .with_state(app_arc)
 }

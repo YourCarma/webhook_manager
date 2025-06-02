@@ -3,9 +3,8 @@ use std::str::FromStr;
 use chrono::{DateTime, Utc};
 use getset::{Getters, Setters};
 use serde::{Deserialize, Serialize, de::Error};
-use uuid::Uuid;
 use utoipa::ToSchema;
-
+use uuid::Uuid;
 
 use redis::{RedisError, RedisResult, RedisWrite, Value};
 

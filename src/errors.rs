@@ -1,6 +1,6 @@
+use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
 use getset::{CopyGetters, Getters};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -9,7 +9,6 @@ use utoipa::ToSchema;
 use crate::storage::error::StorageError;
 
 pub type ServerResult<T> = Result<T, ServerError>;
-
 
 #[derive(Debug, Error)]
 pub enum ServerError {
@@ -82,7 +81,6 @@ impl From<reqwest::Error> for ServerError {
         ServerError::RuntimeError(err.to_string())
     }
 }
-
 
 impl From<StorageError> for ServerError {
     fn from(err: StorageError) -> Self {

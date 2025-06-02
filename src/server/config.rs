@@ -6,4 +6,3 @@ use serde::Deserialize;
 pub struct ServerConfig {
     address: String,
 }
-

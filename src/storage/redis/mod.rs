@@ -3,9 +3,9 @@ pub mod error;
 
 use getset::CopyGetters;
 use redis::{AsyncCommands, AsyncIter, Client, RedisError, RedisResult, ScanOptions, ToRedisArgs};
-use tokio::task;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use tokio::task;
 
 use crate::ServiceConnect;
 use crate::storage::TaskStorage;
@@ -73,15 +73,14 @@ impl TaskStorage for RedisStorage {
         match conn.get(key).await {
             Ok(task) => {
                 tracing::debug!(task=?task, "Found task");
-                Ok(task)},
+                Ok(task)
+            }
             Err(err) => {
                 tracing::warn!(key=key, err=?err, "failed to get task from redis");
                 Err(StorageError::from(err))
             }
         }
     }
-
-
 
     async fn get_tasks(&self, pattern: &str) -> StorageResult<Vec<FormattedTask>> {
         let client_keys = self.scan_values(pattern).await?;
@@ -116,8 +115,9 @@ impl RedisStorage {
         T: ToRedisArgs + Send + Sync,
     {
         let cxt = self.client.write().await;
+        let expired_secs = self.options.expired();
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
-        let result: RedisResult<()> = conn.set(&key, value).await;
+        let result: RedisResult<()> = conn.set_ex(&key, value, expired_secs).await;
         if let Err(err) = result {
             tracing::error!(err=?err, "Failed to set value: {key}");
             return Err(StorageError::KeyNotFound(err.to_string()));
@@ -130,8 +130,8 @@ impl RedisStorage {
         let cxt = self.client.read().await;
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
         let opts = ScanOptions::default()
-                            .with_pattern(pattern)
-                            .with_count(SCAN_COUNT);
+            .with_pattern(pattern)
+            .with_count(SCAN_COUNT);
         let mut matched_keys: AsyncIter<String> = conn.scan_options(opts).await?;
         let mut keys: Vec<String> = Vec::new();
         while let Some(element) = matched_keys.next_item().await {
@@ -151,7 +151,7 @@ impl RedisStorage {
         let cxt = self.client.write().await;
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
         let key_exists = conn.exists(key).await?;
-        match  key_exists{
+        match key_exists {
             true => {
                 let result: RedisResult<()> = conn.del(key).await;
                 if let Err(err) = result {

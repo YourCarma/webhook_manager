@@ -1,14 +1,14 @@
 use core::error;
 
-use axum::response::{IntoResponse, Response};
 use axum::Json;
 use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 use thiserror::Error;
 use utoipa::ToSchema;
 
-use crate::storage::error::StorageError;
 use crate::server::swagger::SwaggerExample;
+use crate::storage::error::StorageError;
 
 pub type ServerResult<T> = Result<T, ServerError>;
 
@@ -23,7 +23,7 @@ pub enum ServerError {
     #[error("invalid key format: {0}")]
     IvalidKeyFormat(String),
     #[error("key not found: {0}")]
-    KeyNotFound(String)
+    KeyNotFound(String),
 }
 
 impl ServerError {
@@ -46,9 +46,7 @@ impl From<StorageError> for ServerError {
             StorageError::ServiceUnavailable(err) => {
                 ServerError::ServiceUnavailable(err.to_string())
             }
-            StorageError::KeyNotFound(err) => {
-                ServerError::KeyNotFound(err.to_string())
-            }
+            StorageError::KeyNotFound(err) => ServerError::KeyNotFound(err.to_string()),
             // StorageError::PaginateError(err) => ServerError::InternalError(err.to_string()),
             // StorageError::RequestTimeout(err) => ServerError::InternalError(err.to_string()),
             // StorageError::ServiceError(err) => ServerError::InternalError(err.to_string()),

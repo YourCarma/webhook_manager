@@ -1,6 +1,6 @@
-use crate::storage::redis::config::RedisConfig;
-use crate::server::config::ServerConfig;
 use crate::logger::LoggerConfig;
+use crate::server::config::ServerConfig;
+use crate::storage::redis::config::RedisConfig;
 
 use config::{Config, ConfigError, Environment, File, FileFormat};
 use derive_builder::Builder;

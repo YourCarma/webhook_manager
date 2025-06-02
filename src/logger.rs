@@ -48,7 +48,6 @@ pub fn init_logger(config: &LoggerConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-
 fn init_rust_log_env(config: &LoggerConfig) {
     let level = config.level();
     if std::env::var("RUST_LOG").is_err() {

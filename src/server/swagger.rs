@@ -1,4 +1,3 @@
-
 use crate::errors::*;
 use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCreation, TaskID};
 use crate::server::router::storage::*;
@@ -37,7 +36,7 @@ use utoipa::OpenApi;
        delete_task,
     )
 )]
-pub (super) struct ApiDoc;
+pub(super) struct ApiDoc;
 
 pub trait SwaggerExample {
     type Example;
