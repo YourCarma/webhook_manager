@@ -4,9 +4,9 @@ pub mod router;
 
 use std::sync::Arc;
 
-pub mod swagger; 
+pub mod swagger;
 use axum::Router;
-use axum::routing::{get, patch, post, any};
+use axum::routing::{any, get, patch, post};
 use swagger::ApiDoc;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;

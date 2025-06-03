@@ -13,6 +13,7 @@ use crate::errors::{ErrorResponse, Successful};
 use crate::server::AppState;
 use crate::server::error::{ServerError, ServerResult};
 use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCreation};
+use crate::storage::models::FormattedTask;
 use crate::storage::TaskStorage;
 use crate::storage::models::Task;
 
@@ -238,9 +239,40 @@ where
     ws.on_upgrade(|socket| handle_socket(socket, state))
 }
 
+async fn process_message<R>(
+    mut socket: WebSocket,
+    msg: &str,
+    state: Arc<AppState<R>>,
+)
+where 
+    R: TaskStorage + Send + Sync,
+{
+    let mut interval = time::interval(Duration::from_secs(1));
+    loop {
+        interval.tick().await;
+        let tasks = match state.storage.get_tasks(&msg.to_owned()).await{
+            Ok(tasks) => tasks,
+            Err(err) => {
+                tracing::error!(err=?err, "Error in websocket:");
+                continue;
+            }
+        };
+        if let Err(error) = socket
+            .send(Message::Text(serde_json::to_string(&tasks).unwrap().into()))
+            .await
+        // if let Err(error) = socket
+        //     .send(Message::Text("Hello".into()))
+        //     .await
+        {
+            tracing::error!(error=?error, "Error sending message");
+            return ;
+        }
+        
+    }
+}
 async fn handle_socket<R>(mut socket: WebSocket, state: Arc<AppState<R>>)
 where
-    R: TaskStorage + Send + Sync,
+    R: TaskStorage + Send + Sync + 'static,
 {
     if let Err(e) = socket
         .send(Message::Text("Hello from the server!".into()))
@@ -254,35 +286,15 @@ where
             Message::Text(msg) => {
                 tracing::debug!(msg=?msg,"Received message:");
                 if let true = check_client_key_pattern(&msg){
-                    let mut interval = time::interval(Duration::from_secs(1));
-                    loop {
-                        interval.tick().await;
-                        let tasks = match state.storage.get_tasks(&msg.to_owned()).await{
-                        Ok(tasks) => tasks,
-                        Err(err) => {
-                            tracing::error!(err=?err, "Error in websocket:");
-                            continue;
-                        }
-                        };
-                        if let Err(error) = socket
-                            .send(Message::Text(serde_json::to_string(&tasks).unwrap().into()))
-                            .await
-                        {
-                            tracing::error!(error=?error, "Error sending message");
-                            break;
-                        }
-                        if let Some(Ok(Message::Close(_)))  = socket.recv().await{
-                            tracing::error!("Closing WebSocket connection.");
-                            break;
-                        }
-                        
-                    }
-
+                    let thread = Some(tokio::spawn(async move {
+                        process_message(socket, &msg, state).await;
+                    }));
                 }
-                
+                return;
              }
             Message::Close(_) => {
                 tracing::error!("Closing WebSocket connection.");
+                return;
             }
             _ => {}
          }
