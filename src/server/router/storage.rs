@@ -293,9 +293,7 @@ where
             Message::Text(msg) => {
                 tracing::debug!(msg=?msg,"Received message:");
                 if let true = check_client_key_pattern(&msg){
-                    let thread = Some(tokio::spawn(async move {
-                        process_message(socket, &msg, state).await;
-                    }));
+                     process_message(socket, &msg, state).await;
                 }
                 return;
              }
@@ -306,29 +304,4 @@ where
             _ => {}
          }
     }
-    // while let Some(Ok(msg)) = socket.recv().await {
-    //     match msg {
-    //         Message::Text(msg) => {
-    //             println!("Received message: {}", msg);
-    //             let tasks = match state.storage.get_tasks(&msg.to_owned()).await{
-    //                 Ok(tasks) => tasks,
-    //                 Err(err) => {
-    //                     tracing::error!(err=?err, "Error in websocket:");
-    //                     continue;
-    //                 }
-    //             };
-    //             if let Err(e) = socket
-    //                 .send(Message::Text(serde_json::to_string(&tasks).unwrap().into()))
-    //                 .await
-    //             {
-    //                 eprintln!("Error sending message: {}", e);
-    //             }
-    //         }
-    //         Message::Close(_) => {
-    //             println!("Closing WebSocket connection.");
-    //             break;
-    //         }
-    //         _ => {}
-    //     }
-    // }
 }
