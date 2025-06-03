@@ -249,26 +249,32 @@ where
 {
     let mut interval = time::interval(Duration::from_secs(1));
     loop {
-        interval.tick().await;
-        let tasks = match state.storage.get_tasks(&msg.to_owned()).await{
-            Ok(tasks) => tasks,
-            Err(err) => {
-                tracing::error!(err=?err, "Error in websocket:");
-                continue;
+        tokio::select! {
+            _ = interval.tick() => {
+                let tasks = match state.storage.get_tasks(&msg.to_owned()).await{
+                    Ok(tasks) => tasks,
+                    Err(err) => {
+                        tracing::error!(err=?err, "Error in websocket:");
+                        continue;
+                    }
+                };
+                if let Err(error) = socket
+                    .send(Message::Text(serde_json::to_string(&tasks).unwrap().into()))
+                    .await
+                    {
+                        tracing::error!(error=?error, "Error sending message");
+                        return ;
+                    }
             }
-        };
-        if let Err(error) = socket
-            .send(Message::Text(serde_json::to_string(&tasks).unwrap().into()))
-            .await
-        // if let Err(error) = socket
-        //     .send(Message::Text("Hello".into()))
-        //     .await
-        {
-            tracing::error!(error=?error, "Error sending message");
-            return ;
+            Some(Ok(result)) = socket.recv() => {
+                match result {
+                    Message::Close(_) => {break}
+                    _ => {}
+                }
+            
         }
-        
-    }
+}
+}
 }
 async fn handle_socket<R>(mut socket: WebSocket, state: Arc<AppState<R>>)
 where
@@ -281,6 +287,7 @@ where
         eprintln!("Error sending message: {}", e);
         return;
     }
+    
     if let Some(Ok(msg)) = socket.recv().await{
          match msg {
             Message::Text(msg) => {
