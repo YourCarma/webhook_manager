@@ -1,12 +1,12 @@
 use redis::{ErrorKind, RedisError};
-use std::error::Error;
 
 use crate::storage::error::StorageError;
 
 impl From<RedisError> for StorageError {
     fn from(err: RedisError) -> Self {
         match err.kind() {
-            ErrorKind::ResponseError | ErrorKind::ParseError | ErrorKind::AuthenticationFailed => {
+            ErrorKind::ResponseError | ErrorKind::ParseError | ErrorKind::AuthenticationFailed | ErrorKind::IoError | ErrorKind::ClientError | 
+            ErrorKind::ClusterConnectionNotFound => {
                 StorageError::ServiceUnavailable("Redis".to_owned())
             }
 
@@ -14,15 +14,14 @@ impl From<RedisError> for StorageError {
                 StorageError::ClientNotFound("client not found".to_owned())
             }
 
+            // ErrorKind::IoError => {}
             // ErrorKind::NoScriptError => {}
             // ErrorKind::InvalidClientConfig => {}
             // ErrorKind::Moved => {}
             // ErrorKind::Ask => {}
             // ErrorKind::TryAgain => {}
-            // ErrorKind::ClusterDown => {}
             // ErrorKind::CrossSlot => {}
             // ErrorKind::MasterDown => {}
-            // ErrorKind::IoError => {}
             // ErrorKind::ClientError => {}
             // ErrorKind::ExtensionError => {}
             // ErrorKind::ReadOnly => {}

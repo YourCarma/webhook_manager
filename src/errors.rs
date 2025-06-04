@@ -17,8 +17,6 @@ pub enum ServerError {
     #[error("failed to (de)serialize object: {0}")]
     SerdeError(String),
     #[error("continues executing: {0}")]
-    Continues(String),
-    #[error("service unavailable: {0}")]
     Unavailable(String),
     #[error("unexpected runtime error: {0}")]
     RuntimeError(String),
@@ -29,7 +27,6 @@ impl ServerError {
         match self {
             ServerError::RedisError(msg) => (msg.to_owned(), StatusCode::INTERNAL_SERVER_ERROR),
             ServerError::SerdeError(msg) => (msg.to_owned(), StatusCode::INTERNAL_SERVER_ERROR),
-            ServerError::Continues(msg) => (msg.to_owned(), StatusCode::INTERNAL_SERVER_ERROR),
             ServerError::Unavailable(msg) => (msg.to_owned(), StatusCode::INTERNAL_SERVER_ERROR),
             ServerError::RuntimeError(msg) => (msg.to_owned(), StatusCode::INTERNAL_SERVER_ERROR),
         }

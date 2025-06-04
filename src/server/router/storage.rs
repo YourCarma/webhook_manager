@@ -13,7 +13,6 @@ use crate::errors::{ErrorResponse, Successful};
 use crate::server::AppState;
 use crate::server::error::{ServerError, ServerResult};
 use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCreation};
-use crate::storage::models::FormattedTask;
 use crate::storage::TaskStorage;
 use crate::storage::models::Task;
 
@@ -37,12 +36,23 @@ fn check_client_key_pattern(key: &str) -> bool {
     path = "/storage/task",
     request_body = TaskCreation,
     tags=["Задачи"],
-    description="
-    ### Создание задачи\n
-    ### Входные данные:
-    **key**: Ключ для хранилища формата `client_id:service_name:task_id`
-    **task**: Объект задачи типа
-    ",
+    description=r#"
+## Создание новой задачи
+
+### Создание задачи для хранища Redis
+
+### Параметры запроса
+- **key** (string): Ключ для хранилища формата `user_id:service_name:task_id`
+- **task**: словарь информации по задаче
+    - **created_at** (timestamp): Время создания задачи
+    - **progress**:
+        - **progress** (float)
+        - **status** (string): Системный статус задачи. Один из `[ Pending, Awaiting, Processing, Ready, Error]`"
+    - **task_id** (UUID4): ID задачи
+    - **user_id** (UUID4): ID пользователя
+    - **updated_at** (timestamp): Время обновления задачи
+    - **response data** (JSON-string): Пользовательская информация по сервису.
+"#,
     responses(
         (status = 201, body = Successful),
         (status = 400, body = ErrorResponse),
@@ -59,7 +69,7 @@ where
     let res = match check_key_pattern(key) {
         true => {
             let task = task.task();
-            let result = state.storage.create_task(key, task).await?;
+            let _result = state.storage.create_task(key, task).await?;
             Ok(Json(Successful::default()))
         }
         false => return Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
@@ -107,6 +117,18 @@ where
     path = "/storage/update_progress",
     tags=["Задачи"],
     request_body = ProgressUpdate,
+    description=r#"
+## Обновление прогресса задачи
+
+### Обновляет (заменяет) текущий прогресс в задаче
+
+### Параметры запроса
+- **key** (string): Ключ для хранилища формата `user_id:service_name:task_id`
+- **progress**:
+    - **progress** (float)
+    - **status** (string): Системный статус задачи. Один из `[ Pending, Awaiting, Processing, Ready, Error]`"
+    
+"#,
     responses(
         (status = 200, body = Successful),
         (status = 400, body = ErrorResponse),
@@ -123,7 +145,7 @@ where
     match check_key_pattern(key) {
         true => {
             let updated_progress = progress.progress();
-            let result = state.storage.update_progress(key, updated_progress).await?;
+            let _result = state.storage.update_progress(key, updated_progress).await?;
             Ok(Json(Successful::default()))
         }
         false => Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
@@ -135,6 +157,16 @@ where
     path = "/storage/update_response_data",
     tags=["Задачи"],
     request_body = ResponseDataUpdate,
+    description=r#"
+## Обновление пользовательской информации сервиса
+
+### Обновляет (заменяет) служебную инфомормацию сервиса
+
+### Параметры запроса
+- **key** (string): Ключ для хранилища формата `user_id:service_name:task_id`
+- **response data** (JSON-string): Пользовательская информация по сервису.
+    
+"#,
     responses(
         (status = 200, body = Successful),
         (status = 400, body = ErrorResponse),
@@ -151,7 +183,7 @@ where
     match check_key_pattern(key) {
         true => {
             let updated_response_data = response_data.response_data();
-            let result = state
+            let _result = state
                 .storage
                 .add_response_data(key, updated_response_data)
                 .await?;
@@ -188,7 +220,7 @@ where
     let key = key.key();
     match check_key_pattern(key) {
         true => {
-            let result = state.storage.delete_task(key).await?;
+            let _result = state.storage.delete_task(key).await?;
             Ok(Json(Successful::default()))
         }
         false => Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
@@ -272,10 +304,11 @@ where
                     _ => {}
                 }
             
+            }
         }
+    }
 }
-}
-}
+
 async fn handle_socket<R>(mut socket: WebSocket, state: Arc<AppState<R>>)
 where
     R: TaskStorage + Send + Sync + 'static,

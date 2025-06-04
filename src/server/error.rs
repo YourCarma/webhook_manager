@@ -1,5 +1,3 @@
-use core::error;
-
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -44,7 +42,7 @@ impl From<StorageError> for ServerError {
     fn from(err: StorageError) -> Self {
         match err {
             StorageError::ServiceUnavailable(err) => {
-                ServerError::ServiceUnavailable(err.to_string())
+                ServerError::ServiceUnavailable(format!("Сервис '{}' недоступен", err.to_string()))
             }
             StorageError::KeyNotFound(err) => ServerError::KeyNotFound(err.to_string()),
             // StorageError::PaginateError(err) => ServerError::InternalError(err.to_string()),

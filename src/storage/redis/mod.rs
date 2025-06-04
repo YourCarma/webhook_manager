@@ -5,7 +5,6 @@ use getset::CopyGetters;
 use redis::{AsyncCommands, AsyncIter, Client, RedisError, RedisResult, ScanOptions, ToRedisArgs};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tokio::task;
 
 use crate::ServiceConnect;
 use crate::storage::TaskStorage;
@@ -42,32 +41,37 @@ impl TaskStorage for RedisStorage {
     async fn create_task(&self, key: &str, value: &Task) -> SubmitResult {
         let expired_secs = self.options.expired();
         let cxt = self.client.write().await;
+        tracing::info!(task=?value, "Creating task: {key}");
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
         let result: RedisResult<()> = conn.set_ex(key, value, expired_secs).await;
         if let Err(err) = result {
             tracing::warn!(err=?err, "failed to get redis service connection");
             return Err(StorageError::KeyNotFound(err.to_string()));
         }
-
+        tracing::info!("Task created!");
         Ok(())
     }
 
     async fn update_progress(&self, key: &str, data: &TaskProgress) -> SubmitResult {
+        tracing::info!(task=?data, "Updating progress: {key}");
         let mut task_to_update = self.get_task(&key).await?;
         task_to_update.set_progress(data.clone());
         let _ = self.set_value(&key, task_to_update).await?;
+        tracing::info!("Progress updated!");
         Ok(())
     }
 
     async fn add_response_data(&self, key: &str, data: &String) -> SubmitResult {
+        tracing::info!(task=?data, "Updating response data: {key}");
         let mut task_to_update = self.get_task(&key).await?;
         task_to_update.set_response_data(data.to_owned());
         let _ = self.set_value(&key, task_to_update).await?;
-
+        tracing::info!("Response data updated!");
         Ok(())
     }
 
     async fn get_task(&self, key: &str) -> StorageResult<Task> {
+        tracing::info!("Getting task: {key}");
         let cxt = self.client.read().await;
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
         match conn.get(key).await {
@@ -83,6 +87,7 @@ impl TaskStorage for RedisStorage {
     }
 
     async fn get_tasks(&self, pattern: &str) -> StorageResult<Vec<FormattedTask>> {
+        tracing::info!("Getting tasks: {pattern}");
         let client_keys = self.scan_values(pattern).await?;
         let mut tasks = Vec::new();
         for key in client_keys.iter() {
