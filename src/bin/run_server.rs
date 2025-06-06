@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
     let config = ServiceConfig::new()?;
     logger::init_logger(config.logger())?;
 
-    let storage = Arc::new(RedisStorage::connect(config.storage()).await?);
+    let storage = Arc::new(RedisStorage::connect(config.storage().redis()).await?);
     let server_app = AppState::new(storage);
 
     let cors_layer = cors::CorsLayer::permissive();

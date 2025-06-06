@@ -45,12 +45,6 @@ impl From<StorageError> for ServerError {
                 ServerError::ServiceUnavailable(format!("Сервис '{}' недоступен", err.to_string()))
             }
             StorageError::KeyNotFound(err) => ServerError::KeyNotFound(err.to_string()),
-            // StorageError::PaginateError(err) => ServerError::InternalError(err.to_string()),
-            // StorageError::RequestTimeout(err) => ServerError::InternalError(err.to_string()),
-            // StorageError::ServiceError(err) => ServerError::InternalError(err.to_string()),
-            // StorageError::RuntimeError(err) => ServerError::InternalError(err.to_string()),
-            // StorageError::SerdeError(err) => ServerError::InternalError(err.to_string()),
-            // StorageError::NotFound(err) => ServerError::NotFound(err.to_string()),
             _ => ServerError::InternalError("Неизвестная ошибка".to_string()),
         }
     }
