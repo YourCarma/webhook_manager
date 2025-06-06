@@ -1,0 +1,103 @@
+use axum::Json;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use serde::Serialize;
+use thiserror::Error;
+use utoipa::ToSchema;
+
+use crate::server::swagger::SwaggerExample;
+use crate::storage::error::StorageError;
+
+pub type ServerResult<T> = Result<T, ServerError>;
+
+#[derive(Debug, Error, Serialize, ToSchema)]
+pub enum ServerError {
+    #[error("not found error: {0}")]
+    NotFound(String),
+    #[error("internal service error: {0}")]
+    InternalError(String),
+    #[error("service unavailable: {0}")]
+    ServiceUnavailable(String),
+    #[error("invalid key format: {0}")]
+    IvalidKeyFormat(String),
+    #[error("key not found: {0}")]
+    KeyNotFound(String),
+}
+
+impl ServerError {
+    pub fn status_code(&self) -> (String, StatusCode) {
+        match self {
+            ServerError::NotFound(msg) => (msg.to_owned(), StatusCode::NOT_FOUND),
+            ServerError::IvalidKeyFormat(msg) => (msg.to_owned(), StatusCode::UNPROCESSABLE_ENTITY),
+            ServerError::KeyNotFound(msg) => (msg.to_owned(), StatusCode::NOT_FOUND),
+            ServerError::InternalError(msg) => (msg.to_owned(), StatusCode::INTERNAL_SERVER_ERROR),
+            ServerError::ServiceUnavailable(msg) => {
+                (msg.to_owned(), StatusCode::SERVICE_UNAVAILABLE)
+            }
+        }
+    }
+}
+
+impl From<StorageError> for ServerError {
+    fn from(err: StorageError) -> Self {
+        match err {
+            StorageError::ServiceUnavailable(err) => {
+                ServerError::ServiceUnavailable(format!("Сервис '{}' недоступен", err.to_string()))
+            }
+            StorageError::KeyNotFound(err) => ServerError::KeyNotFound(err.to_string()),
+            _ => ServerError::InternalError("Неизвестная ошибка".to_string()),
+        }
+    }
+}
+
+impl IntoResponse for ServerError {
+    fn into_response(self) -> Response {
+        #[derive(Serialize)]
+        struct ErrorResponse {
+            message: String,
+        }
+
+        let (msg, status) = self.status_code();
+        let mut resp = Json(ErrorResponse {
+            message: msg.to_string(),
+        })
+        .into_response();
+
+        *resp.status_mut() = status;
+        resp
+    }
+}
+
+impl SwaggerExample for ServerError {
+    type Example = Self;
+
+    fn example(value: Option<&str>) -> Self::Example {
+        match value {
+            None => ServerError::ServiceUnavailable("service unavailable".to_owned()),
+            Some(msg) => ServerError::InternalError(msg.to_owned()),
+        }
+    }
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Success {
+    status: u16,
+    message: String,
+}
+
+impl Default for Success {
+    fn default() -> Self {
+        Success {
+            status: 200,
+            message: "Ok".to_string(),
+        }
+    }
+}
+
+impl SwaggerExample for Success {
+    type Example = Self;
+
+    fn example(_value: Option<&str>) -> Self::Example {
+        Success::default()
+    }
+}
