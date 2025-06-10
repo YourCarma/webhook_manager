@@ -56,7 +56,8 @@ fn check_client_key_pattern(key: &str) -> bool {
     responses(
         (status = 201, body = Successful),
         (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse)
+        (status = 500, body = ErrorResponse),
+        (status = 422, body = ErrorResponse)
     ))]
 pub async fn create_task<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -93,7 +94,9 @@ where
     responses(
         (status = 200, description = "Ok", body=Task),
         (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse)
+        (status = 500, body = ErrorResponse),
+        (status = 422, body = ErrorResponse),
+        (status = 404, body = ErrorResponse)
     ))]
 pub async fn get_task<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -126,13 +129,15 @@ where
 - **key** (string): Ключ для хранилища формата `user_id:service_name:task_id`
 - **progress**:
     - **progress** (float)
-    - **status** (string): Системный статус задачи. Один из `[ Pending, Awaiting, Processing, Ready, Error]`"
+    - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR]`"
     
 "#,
     responses(
         (status = 200, body = Successful),
         (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse)
+        (status = 500, body = ErrorResponse),
+        (status = 422, body = ErrorResponse),
+        (status = 404, body = ErrorResponse)
     ))]
 pub async fn update_progress<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -170,7 +175,9 @@ where
     responses(
         (status = 200, body = Successful),
         (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse)
+        (status = 500, body = ErrorResponse),
+        (status = 422, body = ErrorResponse),
+        (status = 404, body = ErrorResponse)
     ))]
 pub async fn add_response_data<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -242,7 +249,9 @@ where
     responses(
         (status = 200, body = Vec<Task>),
         (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse)
+        (status = 500, body = ErrorResponse),
+        (status = 422, body = ErrorResponse),
+        (status = 404, body = ErrorResponse)
     ))]
 pub async fn get_tasks<R>(
     State(state): State<Arc<AppState<R>>>,
