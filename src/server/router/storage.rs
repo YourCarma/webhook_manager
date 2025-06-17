@@ -47,7 +47,7 @@ fn check_client_key_pattern(key: &str) -> bool {
     - **created_at** (timestamp): Время создания задачи
     - **progress**:
         - **progress** (float)
-        - **status** (string): Системный статус задачи. Один из `[ Pending, Awaiting, Processing, Ready, Error]`"
+        - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR ]`"
     - **task_id** (UUID4): ID задачи
     - **user_id** (UUID4): ID пользователя
     - **updated_at** (timestamp): Время обновления задачи

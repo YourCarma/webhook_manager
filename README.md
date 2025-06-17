@@ -18,23 +18,23 @@
 │   │   │   ├── mod.rs
 │   │   │   ├── models.rs
 │   │   │   └── storage.rs  
-│   │   ├── config.rs		# Конфигурация сервиса
+│   │   ├── config.rs		    # Конфигурация сервиса
 │   │   ├── error.rs
 │   │   ├── mod.rs  
 │   │   └── swagger.rs
 │   ├── storage              	# Директория модуля хранилища
 │   │   ├── redis               # Директория логики работы Redis
-│   │   │   ├── config.rs	# Конфигурация Redis
-│   │   │   ├── error.rs	# Ошибки Redis
+│   │   │   ├── config.rs	    # Конфигурация Redis
+│   │   │   ├── error.rs	    # Ошибки Redis
 │   │   │   └── mod.rs
-│   │   ├── config.rs		# Конфигурация хранилища
-│   │   ├── error.rs		# Ошибки хранилища
+│   │   ├── config.rs		    # Конфигурация хранилища
+│   │   ├── error.rs		    # Ошибки хранилища
 │   │   ├── mod.rs
-│   │   └── models.rs  		# Модели зачач
-│   ├── config.rs		# Конфигурация сервиса
-│   ├── errors.rs		# Ошибки сервиса
+│   │   └── models.rs  		    # Модели зачач
+│   ├── config.rs		        # Конфигурация сервиса
+│   ├── errors.rs		        # Ошибки сервиса
 │   ├── lib.rs
-│   └── logger.rs		# Конфигурация логгера
+│   └── logger.rs		        # Конфигурация логгера
 ├── cargo.toml
 └── .env
 ```

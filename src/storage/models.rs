@@ -27,8 +27,11 @@ pub struct Task {
     #[schema(value_type = String, format = "uuid")]
     user_id: Uuid,
     #[getset(set = "pub")]
+    service: String
+    #[getset(set = "pub")]
     progress: TaskProgress,
     created_at: DateTime<Utc>,
+    #[getset(set = "pub")]
     updated_at: DateTime<Utc>,
     #[getset(set = "pub")]
     response_data: String,
