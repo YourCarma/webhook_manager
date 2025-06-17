@@ -6,7 +6,7 @@ use redis::{AsyncCommands, AsyncIter, Client, RedisError, RedisResult, ScanOptio
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use chrono::{DateTime, Utc};
+use chrono::{Utc};
 use crate::ServiceConnect;
 use crate::storage::TaskStorage;
 use crate::storage::error::{StorageError, StorageResult, SubmitResult};
@@ -57,6 +57,7 @@ impl TaskStorage for RedisStorage {
         tracing::info!(task=?data, "Updating progress: {key}");
         let mut task_to_update = self.get_task(&key).await?;
         task_to_update.set_progress(data.clone());
+        task_to_update.set_updated_at(Utc::now());
         let _ = self.set_value(&key, task_to_update).await?;
         tracing::info!("Progress updated!");
         Ok(())
@@ -66,6 +67,7 @@ impl TaskStorage for RedisStorage {
         tracing::info!(task=?data, "Updating response data: {key}");
         let mut task_to_update = self.get_task(&key).await?;
         task_to_update.set_response_data(data.to_owned());
+        task_to_update.set_updated_at(Utc::now());
         let _ = self.set_value(&key, task_to_update).await?;
         tracing::info!("Response data updated!");
         Ok(())

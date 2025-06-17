@@ -27,7 +27,7 @@ pub struct Task {
     #[schema(value_type = String, format = "uuid")]
     user_id: Uuid,
     #[getset(set = "pub")]
-    service: String
+    service: String,
     #[getset(set = "pub")]
     progress: TaskProgress,
     created_at: DateTime<Utc>,
@@ -60,6 +60,7 @@ impl Default for Task {
         Self {
             task_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),
             user_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),
+            service: "general".to_owned(),
             progress: TaskProgress::default(),
             created_at: datetime,
             updated_at: datetime,
