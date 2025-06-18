@@ -24,9 +24,10 @@ pub enum TaskStatus {
 pub struct Task {
     #[schema(value_type = String, format = "uuid")]
     task_id: Uuid,
-    #[schema(value_type = String, format = "uuid")]
-    user_id: Uuid,
+    #[schema(default = "guest")]
+    user_id: String,
     #[getset(set = "pub")]
+    #[schema(default = "general")]
     service: String,
     #[getset(set = "pub")]
     progress: TaskProgress,
@@ -59,7 +60,7 @@ impl Default for Task {
             .with_timezone(&Utc);
         Self {
             task_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),
-            user_id: Uuid::from_str("96366fb0-0c0f-4671-8f3f-8a98641d11ae").unwrap(),
+            user_id: "guest".to_owned(),
             service: "general".to_owned(),
             progress: TaskProgress::default(),
             created_at: datetime,

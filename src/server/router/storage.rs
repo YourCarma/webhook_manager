@@ -88,7 +88,7 @@ where
             "key" = &str,
             Query,
             description = "",
-            example = "384f4d80-4ed6-4032-8569-f02fd5e1afb9:service_name:384f4d80-4ed6-4032-2569-f02fd5e1afb9",
+            example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9",
         ),
     ),
     responses(
@@ -209,7 +209,7 @@ where
             "key" = &str,
              Query,
             description = "ID of task to get",
-            example = "384f4d80-4ed6-4032-8569-f02fd5e1afb9:service_name:384f4d80-4ed6-4032-2569-f02fd5e1afb9",
+            example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9",
         ),
     ),
     responses(
@@ -243,7 +243,7 @@ where
             "key" = &str,
              Query,
             description = "ID of task to get",
-            example = "384f4d80-4ed6-4032-8569-f02fd5e1afb9:*",
+            example = "guest:*",
         ),
     ),
     responses(
@@ -323,7 +323,7 @@ where
     R: TaskStorage + Send + Sync + 'static,
 {
     if let Err(e) = socket
-        .send(Message::Text("Hello from the server!".into()))
+        .send(Message::Text("Hello from WebhookManager! Send a user_id in format of redis pattern: \"user_id:*\"".into()))
         .await
     {
         eprintln!("Error sending message: {}", e);
