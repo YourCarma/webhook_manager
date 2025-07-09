@@ -1,0 +1,34 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
+  <diagram name="Страница — 1" id="RiM8TLXr-FRFlcw0zHcn">
+    <mxGraphModel dx="1426" dy="849" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-1" value="&lt;font face=&quot;Helvetica&quot; style=&quot;font-size: 33px;&quot;&gt;&lt;b style=&quot;&quot;&gt;&lt;font style=&quot;color: rgb(0, 0, 204);&quot;&gt;user_123&lt;/font&gt;:&lt;font style=&quot;color: rgb(204, 0, 0);&quot;&gt;service_name&lt;/font&gt;:&lt;font style=&quot;color: rgb(77, 153, 0);&quot;&gt;task_id&lt;/font&gt;&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="200" y="360" width="370" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-2" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;rotation=-90;size=0.5;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="200" y="340" width="20" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-4" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;rotation=-90;size=0.5;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="385" y="295" width="20" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-5" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;rotation=-90;size=0.5;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="562.5" y="352.5" width="20" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-6" value="&lt;h3&gt;&lt;b&gt;&lt;font face=&quot;Helvetica&quot; style=&quot;font-size: 15px;&quot;&gt;ID клиента&lt;/font&gt;&lt;/b&gt;&lt;/h3&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="140" y="420" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-7" value="&lt;h3&gt;&lt;b&gt;&lt;font face=&quot;Helvetica&quot; style=&quot;font-size: 15px;&quot;&gt;Название сервиса&lt;/font&gt;&lt;/b&gt;&lt;/h3&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="280" y="420" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-8" value="&lt;h3&gt;&lt;span style=&quot;font-size: 15px;&quot;&gt;ID(UUID) задачи&lt;/span&gt;&lt;/h3&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="510" y="420" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="AZ7c9pTi90IonE_8CZ7u-9" value="&lt;b&gt;&lt;font style=&quot;font-size: 23px;&quot;&gt;KEY&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="354" y="300" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

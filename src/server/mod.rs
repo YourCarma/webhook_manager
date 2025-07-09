@@ -59,7 +59,7 @@ where
             "/storage/update_response_data",
             patch(router::storage::add_response_data),
         )
-        .route("/ws", any(router::storage::websocket_handler))
+        .route("/storage/ws", any(router::storage::websocket_handler))
         .route("/metrics", get(|| async move { metric_handle.render() }))
         .layer(prometheus_layer)
         .with_state(app_arc)
