@@ -99,7 +99,7 @@ GET /metrics
 
 ### Структура проекта
 
-```
+```yaml
 .
 ├── config
 │   └── development.toml        # Конфигурация сервиса
@@ -131,12 +131,14 @@ GET /metrics
 ├── cargo.toml
 └── .env
 ```
-
-Заполнить
 <img src="./docs/context.png" alt="Контекстная схема" style="display: block; margin-left: auto; margin-right: auto; width: 70%;" width="300"/>
+
 ## Основные требования
 
-ПУСТОТА
+* Rust
+* Redis
+* Graphana (Optional) 
+* Prometheus (Optional)
 
 ## Установка
 
