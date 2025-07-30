@@ -1,4 +1,5 @@
 use std::time::Duration;
+use axum::http::HeaderMap;
 use regex::Regex;
 use tokio::time;
 use std::sync::Arc;
@@ -270,16 +271,6 @@ where
     }
 }
 
-pub async fn websocket_handler<R>(
-    ws: WebSocketUpgrade,
-    State(state): State<Arc<AppState<R>>>,
-) -> impl IntoResponse
-where
-    R: TaskStorage + Send + Sync +  'static,
-{
-    ws.on_upgrade(|socket| handle_socket(socket, state))
-}
-
 async fn process_message<R>(
     mut socket: WebSocket,
     msg: &str,
@@ -317,25 +308,41 @@ where
         }
     }
 }
+pub async fn websocket_handler<R>(
+    ws: WebSocketUpgrade,
+    headers: HeaderMap,
+    State(state): State<Arc<AppState<R>>>,
+) -> impl IntoResponse
+where
+    R: TaskStorage + Send + Sync +  'static,
+{
+    ws.on_upgrade(|socket| handle_socket(socket,headers, state))
+}
 
-async fn handle_socket<R>(mut socket: WebSocket, state: Arc<AppState<R>>)
+async fn handle_socket<R>(mut socket: WebSocket, headers: HeaderMap,state: Arc<AppState<R>>)
 where
     R: TaskStorage + Send + Sync + 'static,
 {
     if let Err(e) = socket
-        .send(Message::Text("Hello from WebhookManager! Send a user_id in format of redis pattern: \"user_id:*\"".into()))
+        .send(Message::Text("Hello from WebhookManager! Send any message to continue".into()))
         .await
     {
         eprintln!("Error sending message: {}", e);
         return;
     }
-    
+    tracing::error!(headers=?headers, "Headers");
+    let user_id = headers.get("X-User-ID")
+        .and_then(|value| value.to_str().ok())
+        .map(|s| s.to_owned())
+        .unwrap_or_else(|| "guest".to_owned());
+    tracing::debug!(user_id=?user_id, "UserID: ");
+    let pattern = format!("{user_id}:*");
     if let Some(Ok(msg)) = socket.recv().await{
          match msg {
             Message::Text(msg) => {
                 tracing::debug!(msg=?msg,"Received message:");
-                if let true = check_client_key_pattern(&msg){
-                     process_message(socket, &msg, state).await;
+                if let true = check_client_key_pattern(&pattern){
+                     process_message(socket, &pattern, state).await;
                 }
                 return;
              }

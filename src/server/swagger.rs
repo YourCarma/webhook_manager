@@ -34,7 +34,6 @@ use utoipa::OpenApi;
        get_tasks,
        update_progress,
        delete_task,
-       websocket_handler
     )
 )]
 pub(super) struct ApiDoc;
