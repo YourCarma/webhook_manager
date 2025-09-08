@@ -324,7 +324,7 @@ where
     R: TaskStorage + Send + Sync + 'static,
 {
     if let Err(e) = socket
-        .send(Message::Text("Hello from WebhookManager! Send any message to continue".into()))
+        .send(Message::Text("{\"status\": \"PING\"}".into()))
         .await
     {
         eprintln!("Error sending message: {}", e);
