@@ -189,7 +189,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_connection() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let cxt = redis.client.write().await;
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
@@ -201,7 +201,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_create_task() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let key = "test_user1:test_service1:test_task1";
         let task = Task::default();
@@ -213,7 +213,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_get_task() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let key = "test_user1:test_service1:test_task1";
         let task = Task::default();
@@ -225,7 +225,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_update_progress() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let key = "test_user1:test_service1:test_task1";
         let mut progress = TaskProgress::default();
@@ -239,7 +239,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_add_response() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let key = "test_user1:test_service1:test_task1";
         let test_response_data = "{\n    \"file_url\" : \"www.example.com\"\n}".to_string();
@@ -252,7 +252,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_get_client_tasks() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let key_task = "test_user1:test_service1:test_task1";
         let key_alt_task = "test_user1:test_service1:test_task2";
@@ -270,7 +270,7 @@ mod test_redis {
     #[tokio::test]
     async fn test_delete_task() -> Result<(), anyhow::Error> {
         let s_config = ServiceConfig::new()?;
-        let redis_config = s_config.storage();
+        let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let key = "test_user1:test_service1:test_task1";
         let empty_result = redis.get_task(key).await?;
