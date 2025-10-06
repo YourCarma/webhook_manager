@@ -1,7 +1,7 @@
+pub mod config;
 pub mod error;
 pub mod models;
 pub mod redis;
-pub mod config;
 
 use crate::storage::error::{StorageResult, SubmitResult};
 use crate::storage::models::{FormattedTask, Task, TaskProgress};

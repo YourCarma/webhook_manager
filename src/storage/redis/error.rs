@@ -5,8 +5,12 @@ use crate::storage::error::StorageError;
 impl From<RedisError> for StorageError {
     fn from(err: RedisError) -> Self {
         match err.kind() {
-            ErrorKind::ResponseError | ErrorKind::ParseError | ErrorKind::AuthenticationFailed | ErrorKind::IoError | ErrorKind::ClientError | 
-            ErrorKind::ClusterConnectionNotFound => {
+            ErrorKind::ResponseError
+            | ErrorKind::ParseError
+            | ErrorKind::AuthenticationFailed
+            | ErrorKind::IoError
+            | ErrorKind::ClientError
+            | ErrorKind::ClusterConnectionNotFound => {
                 StorageError::ServiceUnavailable("Redis".to_owned())
             }
 

@@ -6,12 +6,12 @@ use redis::{AsyncCommands, AsyncIter, Client, RedisError, RedisResult, ScanOptio
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use chrono::{Utc};
 use crate::ServiceConnect;
 use crate::storage::TaskStorage;
 use crate::storage::error::{StorageError, StorageResult, SubmitResult};
 use crate::storage::models::{FormattedTask, Task, TaskProgress};
 use crate::storage::redis::config::RedisConfig;
+use chrono::Utc;
 
 #[derive(Clone, CopyGetters)]
 pub struct RedisStorage {

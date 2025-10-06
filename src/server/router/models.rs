@@ -7,9 +7,7 @@ use crate::storage::models::{Task, TaskProgress};
 #[derive(Serialize, Deserialize, Getters, ToSchema)]
 #[getset(get = "pub")]
 pub struct TaskCreation {
-    #[schema(
-        example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9"
-    )]
+    #[schema(example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     key: String,
     task: Task,
 }
@@ -17,9 +15,7 @@ pub struct TaskCreation {
 #[derive(Serialize, Deserialize, Getters, ToSchema)]
 #[getset(get = "pub")]
 pub struct ProgressUpdate {
-    #[schema(
-        example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9"
-    )]
+    #[schema(example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     key: String,
     progress: TaskProgress,
 }
@@ -27,9 +23,7 @@ pub struct ProgressUpdate {
 #[derive(Serialize, Deserialize, Getters, ToSchema)]
 #[getset(get = "pub")]
 pub struct ResponseDataUpdate {
-    #[schema(
-        example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9"
-    )]
+    #[schema(example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     key: String,
     response_data: String,
 }
@@ -37,8 +31,6 @@ pub struct ResponseDataUpdate {
 #[derive(Serialize, Deserialize, Getters, ToSchema)]
 #[getset(get = "pub")]
 pub struct TaskID {
-    #[schema(
-        example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9"
-    )]
+    #[schema(example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     key: String,
 }

@@ -1,6 +1,6 @@
 use crate::logger::LoggerConfig;
-use crate::storage::config::StorageConfig;
 use crate::server::config::ServerConfig;
+use crate::storage::config::StorageConfig;
 
 use config::{Config, ConfigError, Environment, File, FileFormat};
 use derive_builder::Builder;

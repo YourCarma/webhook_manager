@@ -6,12 +6,12 @@ use std::sync::Arc;
 
 pub mod swagger;
 use axum::Router;
+use axum::response::Html;
 use axum::routing::{any, get, patch, post};
 use axum_prometheus::PrometheusMetricLayer;
 use swagger::ApiDoc;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use axum::response::Html;  
 
 use crate::storage::TaskStorage;
 
@@ -40,10 +40,7 @@ where
     let app_arc = Arc::new(app);
     Router::new()
         .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .route(
-            "/",
-            get(Html("<a href=\"/docs\">ДОКУМЕНТАЦИЯ</h1>"))
-        )
+        .route("/", get(Html("<a href=\"/docs\">ДОКУМЕНТАЦИЯ</h1>")))
         .route(
             "/storage/task",
             post(router::storage::create_task)
