@@ -22,27 +22,36 @@ pub struct ServiceConfig {
 
 impl ServiceConfig {
     pub fn new() -> Result<Self, ConfigError> {
-        dotenv().ok();
+         dotenv().ok();
 
         let dev_file_config = File::with_name(DEV_FILE_CONFIG_PATH);
 
         let run_mode = std::env::var(SERVICE_RUN_MODE).unwrap_or("development".into());
         let run_mode_file_path = format!("./config/{}", run_mode);
-        let file_config = File::with_name(&run_mode_file_path)
-            .format(FileFormat::Toml)
-            .required(false);
 
-        let env_config = Environment::with_prefix(CONFIG_PREFIX)
-            .prefix_separator("__")
-            .separator("__")
-            .try_parsing(true);
+        let run_mode_env_name = format!(".env.{}", run_mode);
 
-        let settings = Config::builder()
-            .add_source(dev_file_config)
-            .add_source(file_config)
-            .add_source(env_config)
-            .build()?;
+        if dotenv::from_filename(".env.webhook-manager").is_ok() {
+            unimplemented!()
+        } else {
+            dotenv::from_filename(run_mode_env_name).ok();
 
-        settings.try_deserialize()
+            let file_config = File::with_name(&run_mode_file_path)
+                .format(FileFormat::Toml)
+                .required(false);
+
+            let env_config = Environment::with_prefix(CONFIG_PREFIX)
+                .prefix_separator("__")
+                .separator("__")
+                .try_parsing(true);
+
+            let settings = Config::builder()
+                .add_source(dev_file_config)
+                .add_source(file_config)
+                .add_source(env_config)
+                .build()?;
+
+            settings.try_deserialize()
+        }
     }
 }

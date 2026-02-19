@@ -1,4 +1,4 @@
-FROM rust:1.85 AS chef
+FROM rust:1.91 AS chef
 
 WORKDIR /app
 
@@ -30,9 +30,13 @@ RUN cargo install ${FEATURES} --bins --path .
 
 
 # Target layer based on tiny official ubuntu image with neccessary binaries and data to run.
-FROM debian:bookworm-slim
+FROM ubuntu:24.04
 
-RUN apt-get update && apt install -y openssl
+# Добавьте эти строки перед установкой пакетов
+RUN sysctl -w net.ipv6.conf.all.disable_ipv6=1 \
+ && sysctl -w net.ipv6.conf.default.disable_ipv6=1
+ 
+RUN apt-get update && apt install -y openssl ca-certificates curl
 WORKDIR /app
 
 COPY ./config /app/config
