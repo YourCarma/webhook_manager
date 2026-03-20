@@ -9,6 +9,7 @@ use axum::extract::ws::WebSocket;
 use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{Json, Query, State};
 use axum::response::IntoResponse;
+use utoipa::openapi::Header;
 
 use crate::errors::{ErrorResponse, Successful};
 use crate::server::AppState;
@@ -17,7 +18,7 @@ use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCrea
 use crate::storage::TaskStorage;
 use crate::storage::models::Task;
 
-use super::models::TaskID;
+use super::models::{TaskID, TaskListQuery};
 
 #[inline]
 fn check_key_pattern(key: &str) -> bool {
@@ -32,9 +33,28 @@ fn check_client_key_pattern(key: &str) -> bool {
     re.is_match(key)
 }
 
+fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerResult<String> {
+    let header_user_id = headers
+        .get("X-User-ID")
+        .and_then(|value| value.to_str().ok())
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+
+    let query_user_id = query_user_id.map(str::trim).filter(|value| !value.is_empty());
+
+    header_user_id
+        .or(query_user_id)
+        .map(str::to_owned)
+        .ok_or_else(|| {
+            ServerError::IvalidKeyFormat(
+                "user_id is required in query or X-User-ID header".to_owned(),
+            )
+        })
+}
+
 #[utoipa::path(
     post,
-    path = "/storage/task",
+    path = "/api/v1/storage/task",
     request_body = TaskCreation,
     tags=["Задачи"],
     description=r#"
@@ -82,7 +102,7 @@ where
 
 #[utoipa::path(
     get,
-    path = "/storage/task",
+    path = "/api/v1/storage/task",
     tags=["Задачи"],
     params(
         (
@@ -118,7 +138,7 @@ where
 
 #[utoipa::path(
     patch,
-    path = "/storage/update_progress",
+    path = "/api/v1/storage/update_progress",
     tags=["Задачи"],
     request_body = ProgressUpdate,
     description=r#"
@@ -160,7 +180,7 @@ where
 
 #[utoipa::path(
     patch,
-    path = "/storage/update_response_data",
+    path = "/api/v1/storage/update_response_data",
     tags=["Задачи"],
     request_body = ResponseDataUpdate,
     description=r#"
@@ -203,7 +223,7 @@ where
 
 #[utoipa::path(
     delete,
-    path = "/storage/task",
+    path = "/api/v1/storage/task",
     tags=["Задачи"],
     params(
         (
@@ -237,14 +257,20 @@ where
 
 #[utoipa::path(
     get,
-    path = "/storage/tasks",
+    path = "/api/v1/storage/tasks",
     tags=["Задачи"],
     params(
         (
-            "key" = &str,
+            "user_id" = Option<String>,
              Query,
-            description = "ID of task to get",
-            example = "guest:*",
+            description = "ID пользователя. Может быть передан либо в query, либо в заголовке X-User-ID. Заголовок имеет приоритет.",
+            example = "guest",
+        ),
+        (
+            "X-User-ID" = Option<String>,
+             Header,
+            description = "X-User-ID пользователя.",
+            example = "guest",
         ),
     ),
     responses(
@@ -256,19 +282,16 @@ where
     ))]
 pub async fn get_tasks<R>(
     State(state): State<Arc<AppState<R>>>,
-    Query(key): Query<TaskID>,
+    headers: HeaderMap,
+    Query(query): Query<TaskListQuery>,
 ) -> ServerResult<impl IntoResponse>
 where
     R: TaskStorage + Send + Sync,
 {
-    let key = key.key();
-    match check_client_key_pattern(key) {
-        true => {
-            let result = state.storage.get_tasks(key).await?;
-            Ok(Json(result))
-        }
-        false => Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
-    }
+    let user_id = select_user_id(query.user_id().as_deref(), &headers)?;
+    let user_tasks = format!("{}:*", user_id);
+    let result = state.storage.get_tasks(&user_tasks).await?;
+    Ok(Json(result))
 }
 
 async fn process_message<R>(mut socket: WebSocket, msg: &str, state: Arc<AppState<R>>)
@@ -302,6 +325,70 @@ where
 
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::select_user_id;
+    use axum::http::{HeaderMap, HeaderValue};
+
+    #[test]
+    fn uses_query_when_header_is_missing() {
+        let headers = HeaderMap::new();
+
+        let user_id = select_user_id(Some("query-user"), &headers).unwrap();
+
+        assert_eq!(user_id, "query-user");
+    }
+
+    #[test]
+    fn uses_header_when_query_is_missing() {
+        let mut headers = HeaderMap::new();
+        headers.insert("X-User-ID", HeaderValue::from_static("header-user"));
+
+        let user_id = select_user_id(None, &headers).unwrap();
+
+        assert_eq!(user_id, "header-user");
+    }
+
+    #[test]
+    fn prefers_header_over_query() {
+        let mut headers = HeaderMap::new();
+        headers.insert("X-User-ID", HeaderValue::from_static("header-user"));
+
+        let user_id = select_user_id(Some("query-user"), &headers).unwrap();
+
+        assert_eq!(user_id, "header-user");
+    }
+
+    #[test]
+    fn falls_back_to_query_when_header_is_blank() {
+        let mut headers = HeaderMap::new();
+        headers.insert("X-User-ID", HeaderValue::from_static("   "));
+
+        let user_id = select_user_id(Some("query-user"), &headers).unwrap();
+
+        assert_eq!(user_id, "query-user");
+    }
+
+    #[test]
+    fn returns_error_when_both_sources_are_missing() {
+        let headers = HeaderMap::new();
+
+        let error = select_user_id(None, &headers).unwrap_err();
+
+        assert!(matches!(error, crate::server::error::ServerError::IvalidKeyFormat(_)));
+    }
+
+    #[test]
+    fn returns_error_when_both_sources_are_blank() {
+        let mut headers = HeaderMap::new();
+        headers.insert("X-User-ID", HeaderValue::from_static(" "));
+
+        let error = select_user_id(Some("   "), &headers).unwrap_err();
+
+        assert!(matches!(error, crate::server::error::ServerError::IvalidKeyFormat(_)));
     }
 }
 pub async fn websocket_handler<R>(

@@ -1,5 +1,7 @@
 use crate::errors::*;
-use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCreation, TaskID};
+use crate::server::router::models::{
+    ProgressUpdate, ResponseDataUpdate, TaskCreation, TaskID, TaskListQuery,
+};
 use crate::server::router::storage::*;
 use utoipa::OpenApi;
 
@@ -25,6 +27,7 @@ use utoipa::OpenApi;
             ResponseDataUpdate,
             TaskCreation,
             TaskID,
+            TaskListQuery,
         ),
     ),
     paths(

@@ -34,3 +34,10 @@ pub struct TaskID {
     #[schema(example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     key: String,
 }
+
+#[derive(Serialize, Deserialize, Getters, ToSchema)]
+#[getset(get = "pub")]
+pub struct TaskListQuery {
+    #[schema(example = "guest")]
+    user_id: Option<String>,
+}
