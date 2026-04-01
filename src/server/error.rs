@@ -42,7 +42,7 @@ impl From<StorageError> for ServerError {
     fn from(err: StorageError) -> Self {
         match err {
             StorageError::ServiceUnavailable(err) => {
-                ServerError::ServiceUnavailable(format!("Сервис '{}' недоступен", err.to_string()))
+                ServerError::ServiceUnavailable(format!("Сервис '{err:?}' недоступен"))
             }
             StorageError::KeyNotFound(err) => ServerError::KeyNotFound(err.to_string()),
             _ => ServerError::InternalError("Неизвестная ошибка".to_string()),

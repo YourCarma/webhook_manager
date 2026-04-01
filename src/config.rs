@@ -22,7 +22,7 @@ pub struct ServiceConfig {
 
 impl ServiceConfig {
     pub fn new() -> Result<Self, ConfigError> {
-         dotenv().ok();
+        dotenv().ok();
 
         let dev_file_config = File::with_name(DEV_FILE_CONFIG_PATH);
 

@@ -9,7 +9,6 @@ use axum::extract::ws::WebSocket;
 use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{Json, Query, State};
 use axum::response::IntoResponse;
-use utoipa::openapi::Header;
 
 use crate::errors::{ErrorResponse, Successful};
 use crate::server::AppState;
@@ -40,7 +39,9 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
         .map(str::trim)
         .filter(|value| !value.is_empty());
 
-    let query_user_id = query_user_id.map(str::trim).filter(|value| !value.is_empty());
+    let query_user_id = query_user_id
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
 
     header_user_id
         .or(query_user_id)
@@ -88,16 +89,14 @@ where
     R: TaskStorage + Send + Sync,
 {
     let key = task.key();
-    let res = match check_key_pattern(key) {
+    match check_key_pattern(key) {
         true => {
             let task = task.task();
-            let _result = state.storage.create_task(key, task).await?;
+            state.storage.create_task(key, task).await?;
             Ok(Json(Successful::default()))
         }
-        false => return Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
-    };
-
-    res
+        false => Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
+    }
 }
 
 #[utoipa::path(
@@ -171,7 +170,7 @@ where
     match check_key_pattern(key) {
         true => {
             let updated_progress = progress.progress();
-            let _result = state.storage.update_progress(key, updated_progress).await?;
+            state.storage.update_progress(key, updated_progress).await?;
             Ok(Json(Successful::default()))
         }
         false => Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
@@ -211,7 +210,7 @@ where
     match check_key_pattern(key) {
         true => {
             let updated_response_data = response_data.response_data();
-            let _result = state
+            state
                 .storage
                 .add_response_data(key, updated_response_data)
                 .await?;
@@ -248,7 +247,7 @@ where
     let key = key.key();
     match check_key_pattern(key) {
         true => {
-            let _result = state.storage.delete_task(key).await?;
+            state.storage.delete_task(key).await?;
             Ok(Json(Successful::default()))
         }
         false => Err(ServerError::IvalidKeyFormat("Key format error".to_owned())),
@@ -302,7 +301,7 @@ where
     loop {
         tokio::select! {
             _ = interval.tick() => {
-                let tasks = match state.storage.get_tasks(&msg.to_owned()).await{
+                let tasks = match state.storage.get_tasks(&msg).await{
                     Ok(tasks) => tasks,
                     Err(err) => {
                         tracing::error!(err=?err, "Error in websocket:");
@@ -317,12 +316,11 @@ where
                         return ;
                     }
             }
-            Some(Ok(result)) = socket.recv() => {
-                match result {
-                    Message::Close(_) => {break}
-                    _ => {}
-                }
 
+            Some(Ok(result)) = socket.recv() => {
+                if let Message::Close(_) = result {
+                    break
+                }
             }
         }
     }
@@ -378,7 +376,10 @@ mod tests {
 
         let error = select_user_id(None, &headers).unwrap_err();
 
-        assert!(matches!(error, crate::server::error::ServerError::IvalidKeyFormat(_)));
+        assert!(matches!(
+            error,
+            crate::server::error::ServerError::IvalidKeyFormat(_)
+        ));
     }
 
     #[test]
@@ -388,7 +389,10 @@ mod tests {
 
         let error = select_user_id(Some("   "), &headers).unwrap_err();
 
-        assert!(matches!(error, crate::server::error::ServerError::IvalidKeyFormat(_)));
+        assert!(matches!(
+            error,
+            crate::server::error::ServerError::IvalidKeyFormat(_)
+        ));
     }
 }
 pub async fn websocket_handler<R>(
@@ -425,14 +429,12 @@ where
         match msg {
             Message::Text(msg) => {
                 tracing::debug!(msg=?msg,"Received message:");
-                if let true = check_client_key_pattern(&pattern) {
+                if check_client_key_pattern(&pattern) {
                     process_message(socket, &pattern, state).await;
                 }
-                return;
             }
             Message::Close(_) => {
                 tracing::error!("Closing WebSocket connection.");
-                return;
             }
             _ => {}
         }

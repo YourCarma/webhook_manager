@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 pub mod config;
 pub mod error;
 
@@ -55,20 +56,20 @@ impl TaskStorage for RedisStorage {
 
     async fn update_progress(&self, key: &str, data: &TaskProgress) -> SubmitResult {
         tracing::info!(task=?data, "Updating progress: {key}");
-        let mut task_to_update = self.get_task(&key).await?;
+        let mut task_to_update = self.get_task(key).await?;
         task_to_update.set_progress(data.clone());
         task_to_update.set_updated_at(Utc::now());
-        let _ = self.set_value(&key, task_to_update).await?;
+        let _ = self.set_value(key, task_to_update).await?;
         tracing::info!("Progress updated!");
         Ok(())
     }
 
-    async fn add_response_data(&self, key: &str, data: &String) -> SubmitResult {
+    async fn add_response_data(&self, key: &str, data: &str) -> SubmitResult {
         tracing::info!(task=?data, "Updating response data: {key}");
-        let mut task_to_update = self.get_task(&key).await?;
+        let mut task_to_update = self.get_task(key).await?;
         task_to_update.set_response_data(data.to_owned());
         task_to_update.set_updated_at(Utc::now());
-        let _ = self.set_value(&key, task_to_update).await?;
+        let _ = self.set_value(key, task_to_update).await?;
         tracing::info!("Response data updated!");
         Ok(())
     }
@@ -125,7 +126,7 @@ impl RedisStorage {
         let cxt = self.client.write().await;
         let expired_secs = self.options.expired();
         let mut conn = cxt.get_multiplexed_tokio_connection().await?;
-        let result: RedisResult<()> = conn.set_ex(&key, value, expired_secs).await;
+        let result: RedisResult<()> = conn.set_ex(key, value, expired_secs).await;
         if let Err(err) = result {
             tracing::error!(err=?err, "Failed to set value: {key}");
             return Err(StorageError::KeyNotFound(err.to_string()));
@@ -170,7 +171,7 @@ impl RedisStorage {
             }
             false => {
                 tracing::error!("Key not found: {key}");
-                return Err(StorageError::KeyNotFound("Key not found".to_owned()));
+                Err(StorageError::KeyNotFound("Key not found".to_owned()))
             }
         }
     }

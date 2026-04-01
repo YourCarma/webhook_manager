@@ -5,9 +5,9 @@ pub mod router;
 use std::sync::Arc;
 
 pub mod swagger;
-use axum::{Json, Router};
 use axum::response::Html;
 use axum::routing::{any, get, patch, post};
+use axum::{Json, Router};
 use axum_prometheus::PrometheusMetricLayer;
 use swagger::ApiDoc;
 use utoipa::OpenApi;
@@ -44,8 +44,8 @@ where
         .route(
             "/api/v1/storage/task",
             post(router::storage::create_task)
-            .get(router::storage::get_task)
-            .delete(router::storage::delete_task),
+                .get(router::storage::get_task)
+                .delete(router::storage::delete_task),
         )
         .route("/api/v1/storage/tasks", get(router::storage::get_tasks))
         .route(
@@ -56,7 +56,10 @@ where
             "/api/v1/storage/update_response_data",
             patch(router::storage::add_response_data),
         )
-        .route("/api/v1/storage/ws", any(router::storage::websocket_handler))
+        .route(
+            "/api/v1/storage/ws",
+            any(router::storage::websocket_handler),
+        )
         .route("/health", get(Json("OK")))
         .route("/metrics", get(|| async move { metric_handle.render() }))
         .layer(prometheus_layer)
