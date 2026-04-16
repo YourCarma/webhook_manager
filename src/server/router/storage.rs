@@ -301,7 +301,7 @@ where
     loop {
         tokio::select! {
             _ = interval.tick() => {
-                let tasks = match state.storage.get_tasks(&msg).await{
+                let tasks = match state.storage.get_tasks(msg).await{
                     Ok(tasks) => tasks,
                     Err(err) => {
                         tracing::error!(err=?err, "Error in websocket:");
