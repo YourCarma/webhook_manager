@@ -109,6 +109,10 @@ environment:
   RUSTUP_VERSION: 1.91
   CARGO_BUILD_FEATURES: --all-features
 
+services:
+  - name: redis
+    image: redis:alpine
+
 steps:
   - name: cache-built-rust
     image: drillster/drone-volume-cache
