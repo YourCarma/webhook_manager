@@ -7,6 +7,6 @@ expired = 3600
 
 [logger]
 level = "debug"
-use_loki = "true"
-address = "http://0.0.0.0:3110"
+use_loki = "false"
+address = "http://localhost:3110"
 

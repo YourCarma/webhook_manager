@@ -3,6 +3,9 @@ name = "webhook_manager"
 version = "1.0.0"
 edition = "2024"
 
+[dev-dependencies]
+serial_test = "3.4.0"
+
 [dependencies]
 async-trait = "0.1.86"
 anyhow = "1.0.29"
