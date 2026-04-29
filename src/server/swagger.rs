@@ -1,8 +1,10 @@
-use crate::errors::*;
+use crate::errors::Successful;
+use crate::server::error::ErrorMessageResponse;
 use crate::server::router::models::{
     ProgressUpdate, ResponseDataUpdate, TaskCreation, TaskID, TaskListQuery,
 };
 use crate::server::router::storage::*;
+use crate::storage::models::{Task, TaskProgress, TaskStatus};
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
@@ -10,24 +12,27 @@ use utoipa::OpenApi;
     info(
         title="Webhook Manager Service",
         version="0.5.0",
-        description = "Webhook Manager для управления задачами клиентов"
+        description = "HTTP API и WebSocket API для хранения состояния длительных пользовательских задач в NOSql хранилище."
     ),
     tags(
         (
             name = "Задачи",
-            description = "### Модуль управления задачами",
+            description = "`CRUD` задач. Ключ задачи имеет формат `{user_id}:{service}:{task_id}`.",
         ),
     ),
 
     components(
         schemas(
             Successful,
-            ErrorResponse,
+            ErrorMessageResponse,
             ProgressUpdate,
             ResponseDataUpdate,
             TaskCreation,
             TaskID,
             TaskListQuery,
+            Task,
+            TaskProgress,
+            TaskStatus,
         ),
     ),
     paths(
@@ -37,6 +42,7 @@ use utoipa::OpenApi;
        get_tasks,
        update_progress,
        delete_task,
+       websocket_handler,
     )
 )]
 pub(super) struct ApiDoc;
@@ -53,14 +59,5 @@ impl SwaggerExample for Successful {
     fn example(value: Option<&str>) -> Self::Example {
         let msg = value.unwrap_or("Done");
         Successful::new(200, msg)
-    }
-}
-
-impl SwaggerExample for ErrorResponse {
-    type Example = Self;
-
-    fn example(value: Option<&str>) -> Self::Example {
-        let msg = value.unwrap_or("bad client request");
-        ErrorResponse::new(400, "Bad request", msg)
     }
 }

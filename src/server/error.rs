@@ -24,6 +24,12 @@ pub enum ServerError {
     KeyNotFound(String),
 }
 
+#[derive(Serialize, ToSchema)]
+pub struct ErrorMessageResponse {
+    #[schema(example = "Key format error")]
+    message: String,
+}
+
 impl ServerError {
     pub fn status_code(&self) -> (String, StatusCode) {
         match self {
@@ -52,13 +58,8 @@ impl From<StorageError> for ServerError {
 
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
-        #[derive(Serialize)]
-        struct ErrorResponse {
-            message: String,
-        }
-
         let (msg, status) = self.status_code();
-        let mut resp = Json(ErrorResponse {
+        let mut resp = Json(ErrorMessageResponse {
             message: msg.to_string(),
         })
         .into_response();

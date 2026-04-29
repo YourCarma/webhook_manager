@@ -10,8 +10,9 @@ use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{Json, Query, State};
 use axum::response::IntoResponse;
 
-use crate::errors::{ErrorResponse, Successful};
+use crate::errors::Successful;
 use crate::server::AppState;
+use crate::server::error::ErrorMessageResponse;
 use crate::server::error::{ServerError, ServerResult};
 use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCreation};
 use crate::storage::TaskStorage;
@@ -58,6 +59,7 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
     path = "/api/v1/storage/task",
     request_body = TaskCreation,
     tags=["Задачи"],
+    summary = "Создать задачу",
     description=r#"
 ## Создание новой задачи
 
@@ -76,10 +78,11 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
     - **response data** (JSON-string): Пользовательская информация по сервису.
 "#,
     responses(
-        (status = 201, body = Successful),
-        (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse),
-        (status = 422, body = ErrorResponse)
+        (status = 200, description = "Задача создана", body = Successful),
+        (status = 400, description = "Некорректный JSON или query-параметры", body = ErrorMessageResponse),
+        (status = 422, description = "Ключ не соответствует формату `{user_id}:{service}:{task_id}`", body = ErrorMessageResponse),
+        (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
+        (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
 pub async fn create_task<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -103,20 +106,23 @@ where
     get,
     path = "/api/v1/storage/task",
     tags=["Задачи"],
+    summary = "Получить задачу по ключу",
+    description = "Возвращает одну задачу по ключу формата `{user_id}:{service}:{task_id}`.",
     params(
         (
             "key" = &str,
             Query,
-            description = "",
+            description = "Ключ задачи в формате `{user_id}:{service}:{task_id}`.",
             example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9",
         ),
     ),
     responses(
-        (status = 200, description = "Ok", body=Task),
-        (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse),
-        (status = 422, body = ErrorResponse),
-        (status = 404, body = ErrorResponse)
+        (status = 200, description = "Задача найдена", body=Task),
+        (status = 400, description = "Некорректные query-параметры", body = ErrorMessageResponse),
+        (status = 404, description = "Задача с таким ключом не найдена", body = ErrorMessageResponse),
+        (status = 422, description = "Ключ не соответствует формату `{user_id}:{service}:{task_id}`", body = ErrorMessageResponse),
+        (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
+        (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
 pub async fn get_task<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -140,6 +146,7 @@ where
     path = "/api/v1/storage/update_progress",
     tags=["Задачи"],
     request_body = ProgressUpdate,
+    summary = "Обновить прогресс задачи",
     description=r#"
 ## Обновление прогресса задачи
 
@@ -153,11 +160,12 @@ where
     
 "#,
     responses(
-        (status = 200, body = Successful),
-        (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse),
-        (status = 422, body = ErrorResponse),
-        (status = 404, body = ErrorResponse)
+        (status = 200, description = "Прогресс обновлён", body = Successful),
+        (status = 400, description = "Некорректный JSON", body = ErrorMessageResponse),
+        (status = 404, description = "Задача с таким ключом не найдена", body = ErrorMessageResponse),
+        (status = 422, description = "Ключ не соответствует формату `{user_id}:{service}:{task_id}`", body = ErrorMessageResponse),
+        (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
+        (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
 pub async fn update_progress<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -182,6 +190,7 @@ where
     path = "/api/v1/storage/update_response_data",
     tags=["Задачи"],
     request_body = ResponseDataUpdate,
+    summary = "Обновить response_data задачи",
     description=r#"
 ## Обновление пользовательской информации сервиса
 
@@ -193,11 +202,12 @@ where
     
 "#,
     responses(
-        (status = 200, body = Successful),
-        (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse),
-        (status = 422, body = ErrorResponse),
-        (status = 404, body = ErrorResponse)
+        (status = 200, description = "response_data обновлено", body = Successful),
+        (status = 400, description = "Некорректный JSON", body = ErrorMessageResponse),
+        (status = 404, description = "Задача с таким ключом не найдена", body = ErrorMessageResponse),
+        (status = 422, description = "Ключ не соответствует формату `{user_id}:{service}:{task_id}`", body = ErrorMessageResponse),
+        (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
+        (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
 pub async fn add_response_data<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -224,18 +234,23 @@ where
     delete,
     path = "/api/v1/storage/task",
     tags=["Задачи"],
+    summary = "Удалить задачу",
+    description = "Удаляет задачу по ключу формата `{user_id}:{service}:{task_id}`.",
     params(
         (
             "key" = &str,
              Query,
-            description = "ID of task to get",
+            description = "Ключ задачи в формате `{user_id}:{service}:{task_id}`.",
             example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9",
         ),
     ),
     responses(
-        (status = 201, body = Successful),
-        (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse)
+        (status = 200, description = "Задача удалена", body = Successful),
+        (status = 400, description = "Некорректные query-параметры", body = ErrorMessageResponse),
+        (status = 404, description = "Задача с таким ключом не найдена", body = ErrorMessageResponse),
+        (status = 422, description = "Ключ не соответствует формату `{user_id}:{service}:{task_id}`", body = ErrorMessageResponse),
+        (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
+        (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
 pub async fn delete_task<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -258,26 +273,29 @@ where
     get,
     path = "/api/v1/storage/tasks",
     tags=["Задачи"],
+    summary = "Получить задачи пользователя",
+    description = "Возвращает список задач пользователя. `user_id` можно передать в query или в заголовке `X-User-ID`; если указаны оба значения, используется заголовок.",
     params(
         (
             "user_id" = Option<String>,
              Query,
-            description = "ID пользователя. Может быть передан либо в query, либо в заголовке X-User-ID. Заголовок имеет приоритет.",
+            description = "ID пользователя. Используется, если заголовок `X-User-ID` отсутствует или пустой.",
             example = "guest",
         ),
         (
             "X-User-ID" = Option<String>,
              Header,
-            description = "X-User-ID пользователя.",
+            description = "ID пользователя. Имеет приоритет над query-параметром `user_id`.",
             example = "guest",
         ),
     ),
     responses(
-        (status = 200, body = Vec<Task>),
-        (status = 400, body = ErrorResponse),
-        (status = 500, body = ErrorResponse),
-        (status = 422, body = ErrorResponse),
-        (status = 404, body = ErrorResponse)
+        (status = 200, description = "Список задач пользователя", body = Vec<Task>),
+        (status = 400, description = "Некорректные query-параметры", body = ErrorMessageResponse),
+        (status = 404, description = "Задачи пользователя не найдены", body = ErrorMessageResponse),
+        (status = 422, description = "`user_id` не передан ни в query, ни в `X-User-ID`", body = ErrorMessageResponse),
+        (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
+        (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
 pub async fn get_tasks<R>(
     State(state): State<Arc<AppState<R>>>,
@@ -395,6 +413,33 @@ mod tests {
         ));
     }
 }
+
+#[utoipa::path(
+    get,
+    path = "/api/v1/storage/ws",
+    tags=["Задачи"],
+    summary = "Подписаться на задачи пользователя через WebSocket",
+    description = r#"
+Открывает WebSocket-соединение для потокового получения задач пользователя.
+
+После подключения сервер отправляет `{"status":"PING"}`. Клиент должен отправить любое текстовое
+сообщение, после чего сервер раз в секунду отправляет JSON-массив задач пользователя.
+
+Пользователь определяется по заголовку `X-User-ID`. Если заголовок не передан, используется `guest`.
+"#,
+    params(
+        (
+            "X-User-ID" = Option<String>,
+            Header,
+            description = "ID пользователя для подписки. Если заголовок отсутствует, используется `guest`.",
+            example = "guest",
+        ),
+    ),
+    responses(
+        (status = 101, description = "WebSocket-соединение установлено"),
+        (status = 400, description = "Некорректный WebSocket upgrade-запрос", body = ErrorMessageResponse)
+    )
+)]
 pub async fn websocket_handler<R>(
     ws: WebSocketUpgrade,
     headers: HeaderMap,

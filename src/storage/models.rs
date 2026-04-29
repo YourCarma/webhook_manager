@@ -22,19 +22,22 @@ pub enum TaskStatus {
 #[derive(Serialize, Deserialize, Getters, Setters, PartialEq, Debug, Clone, ToSchema)]
 #[getset(get = "pub", set = "pub")]
 pub struct Task {
-    #[schema(value_type = String, format = "uuid")]
+    #[schema(value_type = String, format = "uuid", example = "384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     task_id: Uuid,
-    #[schema(default = "guest")]
+    #[schema(default = "guest", example = "guest")]
     user_id: String,
     #[getset(set = "pub")]
-    #[schema(default = "general")]
+    #[schema(default = "general", example = "general")]
     service: String,
     #[getset(set = "pub")]
     progress: TaskProgress,
+    #[schema(example = "2025-07-09T12:51:27.948Z")]
     created_at: DateTime<Utc>,
     #[getset(set = "pub")]
+    #[schema(example = "2025-07-09T12:55:27.948Z")]
     updated_at: DateTime<Utc>,
     #[getset(set = "pub")]
+    #[schema(example = "{\"result\":\"ok\"}")]
     response_data: String,
 }
 
@@ -49,7 +52,9 @@ pub struct FormattedTask {
 #[derive(Serialize, Deserialize, Getters, Setters, Default, PartialEq, Debug, Clone, ToSchema)]
 #[getset(get = "pub", set = "pub")]
 pub struct TaskProgress {
+    #[schema(example = "PROCESSING")]
     status: TaskStatus,
+    #[schema(example = 0.5)]
     progress: f32,
 }
 
