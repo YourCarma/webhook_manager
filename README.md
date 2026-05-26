@@ -249,3 +249,4 @@ docker run --rm \
 ```
 
 <img src="./docs/context.png" alt="Контекстная схема" style="display: block; margin-left: auto; margin-right: auto; width: 70%;" width="300"/>
+
