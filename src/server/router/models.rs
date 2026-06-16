@@ -14,6 +14,12 @@ pub struct TaskCreation {
 
 #[derive(Serialize, Deserialize, Getters, ToSchema)]
 #[getset(get = "pub")]
+pub struct TaskCreationV2 {
+    task: Task,
+}
+
+#[derive(Serialize, Deserialize, Getters, ToSchema)]
+#[getset(get = "pub")]
 pub struct ProgressUpdate {
     #[schema(example = "guest:general:384f4d80-4ed6-4032-2569-f02fd5e1afb9")]
     key: String,

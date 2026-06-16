@@ -2,11 +2,10 @@
 address = "0.0.0.0:10001"
 
 [storage.redis]
-address = "redis://0.0.0.0:6379"
+address = "redis://127.0.0.1:6379"
 expired = 3600
 
 [logger]
 level = "debug"
 use_loki = "false"
 address = "http://localhost:3110"
-

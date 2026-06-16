@@ -3,7 +3,9 @@ pub mod config;
 pub mod error;
 
 use getset::CopyGetters;
-use redis::{AsyncCommands, AsyncIter, Client, RedisError, RedisResult, ScanOptions, ToRedisArgs};
+use redis::{
+    AsyncCommands, AsyncIter, Client, RedisError, RedisResult, ScanOptions, ToSingleRedisArg,
+};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -44,7 +46,7 @@ impl TaskStorage for RedisStorage {
         let expired_secs = self.options.expired();
         let cxt = self.client.write().await;
         tracing::info!(task=?value, "Creating task: {key}");
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         let result: RedisResult<()> = conn.set_ex(key, value, expired_secs).await;
         if let Err(err) = result {
             tracing::warn!(err=?err, "failed to get redis service connection");
@@ -77,7 +79,7 @@ impl TaskStorage for RedisStorage {
     async fn get_task(&self, key: &str) -> StorageResult<Task> {
         tracing::info!("Getting task: {key}");
         let cxt = self.client.read().await;
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         match conn.get(key).await {
             Ok(task) => {
                 tracing::debug!(task=?task, "Found task");
@@ -121,11 +123,11 @@ impl TaskStorage for RedisStorage {
 impl RedisStorage {
     async fn set_value<T>(&self, key: &str, value: T) -> SubmitResult
     where
-        T: ToRedisArgs + Send + Sync,
+        T: ToSingleRedisArg + Send + Sync,
     {
         let cxt = self.client.write().await;
         let expired_secs = self.options.expired();
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         let result: RedisResult<()> = conn.set_ex(key, value, expired_secs).await;
         if let Err(err) = result {
             tracing::error!(err=?err, "Failed to set value: {key}");
@@ -137,28 +139,28 @@ impl RedisStorage {
     async fn scan_values(&self, pattern: &str) -> StorageResult<Vec<String>> {
         const SCAN_COUNT: usize = 1000;
         let cxt = self.client.read().await;
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         let opts = ScanOptions::default()
             .with_pattern(pattern)
             .with_count(SCAN_COUNT);
         let mut matched_keys: AsyncIter<String> = conn.scan_options(opts).await?;
         let mut keys: Vec<String> = Vec::new();
         while let Some(element) = matched_keys.next_item().await {
-            keys.push(element)
+            keys.push(element?)
         }
         Ok(keys)
     }
 
     async fn get_ttl(&self, key: &str) -> StorageResult<i64> {
         let cxt = self.client.read().await;
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         let ttl: i64 = conn.ttl(key).await?;
         Ok(ttl)
     }
 
     async fn delete_key(&self, key: &str) -> SubmitResult {
         let cxt = self.client.write().await;
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         let key_exists = conn.exists(key).await?;
         match key_exists {
             true => {
@@ -194,7 +196,7 @@ mod test_redis {
         let redis_config = s_config.storage().redis();
         let redis = RedisStorage::connect(redis_config).await?;
         let cxt = redis.client.write().await;
-        let mut conn = cxt.get_multiplexed_tokio_connection().await?;
+        let mut conn = cxt.get_multiplexed_async_connection().await?;
         let connected: String = conn.ping().await?;
         assert_eq!(connected, "PONG");
         Ok(())

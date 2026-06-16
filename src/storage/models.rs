@@ -2,11 +2,11 @@ use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
 use getset::{Getters, Setters};
-use serde::{Deserialize, Serialize, de::Error};
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use redis::{RedisError, RedisResult, RedisWrite, Value};
+use redis::{ParsingError, RedisWrite, Value};
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone, ToSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -98,16 +98,14 @@ impl redis::ToRedisArgs for Task {
     }
 }
 
+impl redis::ToSingleRedisArg for Task {}
+
 impl redis::FromRedisValue for Task {
-    fn from_redis_value(v: &Value) -> RedisResult<Self> {
+    fn from_redis_value(v: Value) -> Result<Self, ParsingError> {
         match v {
-            Value::BulkString(data) => {
-                serde_json::from_slice::<Task>(data.as_slice()).map_err(RedisError::from)
-            }
-            _ => {
-                let err = serde_json::Error::custom("failed to extract redis value type");
-                Err(RedisError::from(err))
-            }
+            Value::BulkString(data) => serde_json::from_slice::<Task>(data.as_slice())
+                .map_err(|err| ParsingError::from(err.to_string())),
+            _ => Err(ParsingError::from("failed to extract redis value type")),
         }
     }
 }
@@ -125,3 +123,5 @@ impl redis::ToRedisArgs for TaskProgress {
         }
     }
 }
+
+impl redis::ToSingleRedisArg for TaskProgress {}

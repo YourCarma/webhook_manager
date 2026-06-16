@@ -14,11 +14,11 @@ use crate::errors::Successful;
 use crate::server::AppState;
 use crate::server::error::ErrorMessageResponse;
 use crate::server::error::{ServerError, ServerResult};
-use crate::server::router::models::{ProgressUpdate, ResponseDataUpdate, TaskCreation};
+use crate::server::router::models::{
+    ProgressUpdate, ResponseDataUpdate, TaskCreation, TaskID, TaskListQuery,
+};
 use crate::storage::TaskStorage;
 use crate::storage::models::Task;
-
-use super::models::{TaskID, TaskListQuery};
 
 #[inline]
 fn check_key_pattern(key: &str) -> bool {
@@ -58,7 +58,7 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
     post,
     path = "/api/v1/storage/task",
     request_body = TaskCreation,
-    tags=["Задачи"],
+    tags=["V1"],
     summary = "Создать задачу",
     description=r#"
 ## Создание новой задачи
@@ -105,7 +105,7 @@ where
 #[utoipa::path(
     get,
     path = "/api/v1/storage/task",
-    tags=["Задачи"],
+    tags=["V1"],
     summary = "Получить задачу по ключу",
     description = "Возвращает одну задачу по ключу формата `{user_id}:{service}:{task_id}`.",
     params(
@@ -144,7 +144,7 @@ where
 #[utoipa::path(
     patch,
     path = "/api/v1/storage/update_progress",
-    tags=["Задачи"],
+    tags=["V1"],
     request_body = ProgressUpdate,
     summary = "Обновить прогресс задачи",
     description=r#"
@@ -188,7 +188,7 @@ where
 #[utoipa::path(
     patch,
     path = "/api/v1/storage/update_response_data",
-    tags=["Задачи"],
+    tags=["V1"],
     request_body = ResponseDataUpdate,
     summary = "Обновить response_data задачи",
     description=r#"
@@ -233,7 +233,7 @@ where
 #[utoipa::path(
     delete,
     path = "/api/v1/storage/task",
-    tags=["Задачи"],
+    tags=["V1"],
     summary = "Удалить задачу",
     description = "Удаляет задачу по ключу формата `{user_id}:{service}:{task_id}`.",
     params(
@@ -272,7 +272,7 @@ where
 #[utoipa::path(
     get,
     path = "/api/v1/storage/tasks",
-    tags=["Задачи"],
+    tags=["V1"],
     summary = "Получить задачи пользователя",
     description = "Возвращает список задач пользователя. `user_id` можно передать в query или в заголовке `X-User-ID`; если указаны оба значения, используется заголовок.",
     params(
@@ -417,7 +417,7 @@ mod tests {
 #[utoipa::path(
     get,
     path = "/api/v1/storage/ws",
-    tags=["Задачи"],
+    tags=["V1"],
     summary = "Подписаться на задачи пользователя через WebSocket",
     description = r#"
 Открывает WebSocket-соединение для потокового получения задач пользователя.
