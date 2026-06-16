@@ -8,6 +8,10 @@ use uuid::Uuid;
 
 use redis::{ParsingError, RedisWrite, Value};
 
+fn current_timestamp() -> DateTime<Utc> {
+    Utc::now()
+}
+
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone, ToSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TaskStatus {
@@ -31,9 +35,11 @@ pub struct Task {
     service: String,
     #[getset(set = "pub")]
     progress: TaskProgress,
+    #[serde(default = "current_timestamp")]
     #[schema(example = "2025-07-09T12:51:27.948Z")]
     created_at: DateTime<Utc>,
     #[getset(set = "pub")]
+    #[serde(default = "current_timestamp")]
     #[schema(example = "2025-07-09T12:55:27.948Z")]
     updated_at: DateTime<Utc>,
     #[getset(set = "pub")]
@@ -125,3 +131,33 @@ impl redis::ToRedisArgs for TaskProgress {
 }
 
 impl redis::ToSingleRedisArg for TaskProgress {}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+
+    use super::Task;
+
+    #[test]
+    fn deserializes_missing_timestamps_with_current_time() {
+        let payload = r#"{
+            "task_id": "96366fb0-0c0f-4671-8f3f-8a98641d11ae",
+            "user_id": "guest",
+            "service": "general",
+            "progress": {
+                "status": "PENDING",
+                "progress": 0.0
+            },
+            "response_data": ""
+        }"#;
+
+        let before = Utc::now();
+        let task: Task = serde_json::from_str(payload).unwrap();
+        let after = Utc::now();
+
+        assert!(*task.created_at() >= before);
+        assert!(*task.created_at() <= after);
+        assert!(*task.updated_at() >= before);
+        assert!(*task.updated_at() <= after);
+    }
+}

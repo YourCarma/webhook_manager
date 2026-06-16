@@ -81,9 +81,13 @@ impl TaskStorage for RedisStorage {
         let cxt = self.client.read().await;
         let mut conn = cxt.get_multiplexed_async_connection().await?;
         match conn.get(key).await {
-            Ok(task) => {
+            Ok(Some(task)) => {
                 tracing::debug!(task=?task, "Found task");
                 Ok(task)
+            }
+            Ok(None) => {
+                tracing::warn!(key = key, "task key not found in redis");
+                Err(StorageError::KeyNotFound(key.to_owned()))
             }
             Err(err) => {
                 tracing::warn!(key=key, err=?err, "failed to get task from redis");
@@ -228,6 +232,24 @@ mod test_redis {
 
         let result = redis.get_task(key).await?;
         assert_eq!(result, task);
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn test_get_missing_task_returns_key_not_found() -> Result<(), anyhow::Error> {
+        let s_config = ServiceConfig::new()?;
+        let redis_config = s_config.storage().redis();
+        let redis = RedisStorage::connect(redis_config).await?;
+
+        let result = redis
+            .get_task("test_user_missing:test_service1:test_task1")
+            .await;
+
+        assert!(matches!(
+            result,
+            Err(crate::storage::error::StorageError::KeyNotFound(_))
+        ));
         Ok(())
     }
 

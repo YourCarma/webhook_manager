@@ -31,6 +31,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 pub fn init_server<R>(app: AppState<R>) -> Router
 where
     R: TaskStorage + Send + Sync + 'static,

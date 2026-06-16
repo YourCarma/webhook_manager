@@ -68,13 +68,13 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
 ### Параметры запроса
 - **key** (string): Ключ для хранилища формата `user_id:service_name:task_id`
 - **task**: словарь информации по задаче
-    - **created_at** (timestamp): Время создания задачи
+    - **created_at** (timestamp, optional): Время создания задачи. Если поле не передано, сервер задаёт текущие дату и время.
     - **progress**:
         - **progress** (float)
         - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR ]`"
     - **task_id** (UUID4): ID задачи
     - **user_id** (UUID4): ID пользователя
-    - **updated_at** (timestamp): Время обновления задачи
+    - **updated_at** (timestamp, optional): Время обновления задачи. Если поле не передано, сервер задаёт текущие дату и время.
     - **response data** (JSON-string): Пользовательская информация по сервису.
 "#,
     responses(
@@ -84,6 +84,7 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
         (status = 500, description = "Внутренняя ошибка хранилища", body = ErrorMessageResponse),
         (status = 503, description = "Redis или зависимый сервис недоступен", body = ErrorMessageResponse)
     ))]
+#[deprecated(note = "Use POST /api/v2/storage/task instead")]
 pub async fn create_task<R>(
     State(state): State<Arc<AppState<R>>>,
     Json(task): Json<TaskCreation>,
