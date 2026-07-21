@@ -21,6 +21,7 @@ pub enum TaskStatus {
     Processing,
     Ready,
     Error,
+    Cancelled,
 }
 
 #[derive(Serialize, Deserialize, Getters, Setters, PartialEq, Debug, Clone, ToSchema)]

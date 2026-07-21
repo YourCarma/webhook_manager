@@ -71,7 +71,7 @@ fn select_user_id(query_user_id: Option<&str>, headers: &HeaderMap) -> ServerRes
     - **created_at** (timestamp, optional): Время создания задачи. Если поле не передано, сервер задаёт текущие дату и время.
     - **progress**:
         - **progress** (float)
-        - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR ]`"
+        - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR, CANCELLED ]`"
     - **task_id** (UUID4): ID задачи
     - **user_id** (UUID4): ID пользователя
     - **updated_at** (timestamp, optional): Время обновления задачи. Если поле не передано, сервер задаёт текущие дату и время.
@@ -157,7 +157,7 @@ where
 - **key** (string): Ключ для хранилища формата `user_id:service_name:task_id`
 - **progress**:
     - **progress** (float)
-    - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR]`"
+    - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR, CANCELLED]`"
     
 "#,
     responses(

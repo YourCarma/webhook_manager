@@ -41,7 +41,7 @@ fn check_key_pattern(key: &str) -> bool {
     - **created_at** (timestamp, optional): Время создания задачи. Если поле не передано, сервер задаёт текущие дату и время.
     - **progress**:
         - **progress** (float)
-        - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR ]`
+        - **status** (string): Системный статус задачи. Один из `[ PENDING, AWAITING, PROCESSING, READY, ERROR, CANCELLED ]`
     - **updated_at** (timestamp, optional): Время обновления задачи. Если поле не передано, сервер задаёт текущие дату и время.
     - **response_data** (JSON-string): Пользовательская информация по сервису.
 "#,
